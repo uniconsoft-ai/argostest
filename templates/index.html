@@ -1922,13 +1922,11 @@
       // Muhitni aniqlash (Lokal yoki Firebase Hosting / Cloud)
       const badge = document.getElementById("server-status-badge");
       if (badge) {
-        if (window.location.hostname.includes("web.app") || window.location.hostname.includes("firebaseapp.com")) {
-          badge.textContent = "argostest.web.app (Online)";
-          badge.className = "px-2 py-0.5 text-[11px] font-bold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300 border border-blue-300 dark:border-blue-700";
-        } else if (window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost") {
+        if (window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost") {
           badge.textContent = "Lokal Server (127.0.0.1:5000)";
         } else {
-          badge.textContent = window.location.hostname;
+          badge.textContent = "argostest.web.app (Online)";
+          badge.className = "px-2 py-0.5 text-[11px] font-bold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300 border border-blue-300 dark:border-blue-700";
         }
       }
     });
