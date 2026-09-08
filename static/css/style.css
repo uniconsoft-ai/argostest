@@ -1,0 +1,374 @@
+/* ==========================================================================
+   ARGOS.UZ WEB WORD VIEWER - ASOSIY USLUBLAR
+   ========================================================================== */
+
+:root {
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --bg-main: #f8fafc;
+  --bg-card: #ffffff;
+  --border-color: #e2e8f0;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --doc-bg: #e2e8f0;
+}
+
+.dark {
+  --primary: #3b82f6;
+  --primary-hover: #60a5fa;
+  --bg-main: #0f172a;
+  --bg-card: #1e293b;
+  --border-color: #334155;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --doc-bg: #0b1120;
+}
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  min-height: 100vh;
+}
+
+/* Select Options Styling (Dark & Light) */
+select option {
+  background-color: #ffffff;
+  color: #1e293b;
+}
+.dark select option {
+  background-color: #0f172a;
+  color: #f1f5f9;
+}
+
+/* Sevimlilar Yulduzchasi */
+.btn-fav-star {
+  transition: transform 0.15s ease, color 0.15s ease;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn-fav-star:hover {
+  transform: scale(1.25);
+}
+.btn-fav-star.is-favorited {
+  color: #f59e0b !important;
+  text-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+}
+
+/* Fullscreen Rejimi (To'liq ekran) */
+.workspace-fullscreen {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 100 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  border-radius: 0 !important;
+  margin: 0 !important;
+  max-height: 100vh !important;
+  box-shadow: none !important;
+}
+
+
+/* ==========================================================================
+   WORD (.DOCX) SAHIFA KO'RUVCHI (DOCX-PREVIEW) USLUBLARI
+   ========================================================================== */
+#docx-container {
+  background-color: var(--doc-bg);
+  flex: 1;
+  min-height: 620px;
+  height: 100%;
+  overflow-y: auto;
+  transition: background-color 0.2s ease;
+  position: relative;
+}
+
+
+/* docx-preview kutubxonasi generatsiya qiladigan sahifalar */
+.docx-wrapper {
+  background: transparent !important;
+  padding: 24px 16px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 24px !important;
+}
+
+.docx-wrapper > section.docx {
+  background: #ffffff !important;
+  color: #1a1a1a !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+  border-radius: 3px !important;
+  margin-bottom: 0 !important;
+  transition: transform 0.15s ease-out;
+  transform-origin: top center;
+  box-sizing: border-box !important;
+}
+
+.docx-wrapper > section.docx table {
+  border-collapse: collapse !important;
+  width: 100% !important;
+}
+
+.docx-wrapper > section.docx table td,
+.docx-wrapper > section.docx table th {
+  border: 1px solid #cbd5e1 !important;
+  padding: 6px 10px !important;
+}
+
+/* Zoom Container */
+#zoom-wrapper {
+  transform-origin: top center;
+  transition: transform 0.15s ease-out;
+}
+
+/* ==========================================================================
+   MAMMOTH HTML O'QISH REJIMI USLUBLARI
+   ========================================================================== */
+.mammoth-content {
+  background: #ffffff;
+  color: #1e293b;
+  padding: 40px 48px;
+  max-width: 900px;
+  margin: 0 auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  line-height: 1.65;
+  font-size: 15px;
+}
+
+.mammoth-content h1 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1e3a8a;
+  border-bottom: 2px solid #2563eb;
+  padding-bottom: 8px;
+  margin-top: 24px;
+  margin-bottom: 16px;
+}
+
+.mammoth-content h2 {
+  font-size: 17px;
+  font-weight: 600;
+  color: #1e40af;
+  margin-top: 20px;
+  margin-bottom: 12px;
+}
+
+.mammoth-content p {
+  margin-bottom: 12px;
+}
+
+.mammoth-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 14px;
+}
+
+.mammoth-content table td,
+.mammoth-content table th {
+  border: 1px solid #cbd5e1;
+  padding: 8px 12px;
+  vertical-align: top;
+}
+
+.mammoth-content table tr:nth-child(even) {
+  background-color: #f8fafc;
+}
+
+/* ==========================================================================
+   CHOP ETISH (PRINT) SOZLAMALARI
+   ========================================================================== */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #docx-container, #docx-container * {
+    visibility: visible;
+  }
+  #docx-container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  .docx-wrapper {
+    padding: 0 !important;
+    gap: 0 !important;
+  }
+  .docx-wrapper > section.docx {
+    box-shadow: none !important;
+    margin: 0 !important;
+    page-break-after: always;
+  }
+}
+
+/* ==========================================================================
+   ARGOS RASMIY NAVBAR VA TUGMALAR USLUBLARI
+   ========================================================================== */
+.header-icon-btn {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: #f3f5fb;
+  border: 1px solid #dfe6f4;
+  color: #3165cb;
+  cursor: pointer;
+  transition: all .2s ease;
+  flex-shrink: 0;
+  text-decoration: none;
+}
+.header-icon-btn:hover {
+  background: #e5ebf8;
+  border-color: #c5d3ee;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(49, 101, 203, 0.18);
+}
+.header-icon-btn__dot {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ef4444;
+  border: 2px solid #fff;
+}
+.dark .header-icon-btn {
+  background: rgba(162, 173, 232, 0.14) !important;
+  border: 1.35px solid #a2ade8 !important;
+  color: #dfe6f4 !important;
+}
+.dark .header-icon-btn:hover {
+  background: rgba(162, 173, 232, 0.24) !important;
+  box-shadow: 0 4px 10px rgba(162, 173, 232, 0.25);
+}
+.dark .header-icon-btn__dot {
+  border-color: #0f172a;
+}
+
+/* Savollar Dropdown Uslublari */
+ul.questions-dropdown,
+.questions-dropdown {
+  position: absolute;
+  top: calc(100% + 14px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 360px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 12px 40px rgba(1, 5, 28, 0.16);
+  padding: 6px 0;
+  margin: 0;
+  z-index: 60;
+  border: 1px solid #eef1f7;
+}
+
+ul.questions-dropdown.hidden,
+.questions-dropdown.hidden {
+  display: none !important;
+}
+
+.questions-dropdown:before {
+  content: "";
+  position: absolute;
+  top: -7px;
+  left: 50%;
+  margin-left: -7px;
+  width: 14px;
+  height: 14px;
+  background: #ffffff;
+  border-top: 1px solid #eef1f7;
+  border-left: 1px solid #eef1f7;
+  border-radius: 2px;
+  transform: rotate(45deg);
+}
+.questions-dropdown li:not(:first-child) {
+  border-top: 1px solid #eef1f7;
+}
+.questions-dropdown__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 18px;
+  text-decoration: none;
+  transition: background 0.15s ease;
+}
+.questions-dropdown__item:hover {
+  background: #f7f9fd;
+}
+.questions-dropdown__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #eef3fc;
+  color: #3165cb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.questions-dropdown__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  text-align: left;
+}
+.questions-dropdown__title {
+  font-weight: 700;
+  font-size: 15px;
+  line-height: 1.3;
+  color: #26292e;
+}
+.questions-dropdown__desc {
+  font-size: 13px;
+  font-weight: 400;
+  color: #79838e;
+  line-height: 1.4;
+  text-transform: none;
+}
+.questions-dropdown__arrow {
+  color: #79838e;
+  font-size: 16px;
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+
+.dark ul.questions-dropdown {
+  background: #131b4b !important;
+  border: 1.35px solid #a2ade8 !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5) !important;
+}
+.dark .questions-dropdown:before {
+  background: #131b4b !important;
+  border-top: 1.35px solid #a2ade8 !important;
+  border-left: 1.35px solid #a2ade8 !important;
+}
+.dark .questions-dropdown li:not(:first-child) {
+  border-top-color: rgba(162, 173, 232, 0.3) !important;
+}
+.dark .questions-dropdown__item:hover {
+  background: rgba(162, 173, 232, 0.12) !important;
+}
+.dark .questions-dropdown__icon {
+  background: rgba(162, 173, 232, 0.2) !important;
+  color: #a2ade8 !important;
+}
+.dark .questions-dropdown__title {
+  color: #ffffff !important;
+}
+.dark .questions-dropdown__desc, .dark .questions-dropdown__arrow {
+  color: #a9b3d6 !important;
+}
+

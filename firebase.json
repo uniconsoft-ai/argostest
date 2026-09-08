@@ -1,0 +1,21 @@
+{
+  "hosting": {
+    "site": "argostest",
+    "public": "static",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/__pycache__/**",
+      "exports/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "run": {
+          "serviceId": "argos-web",
+          "region": "us-central1"
+        }
+      }
+    ]
+  }
+}

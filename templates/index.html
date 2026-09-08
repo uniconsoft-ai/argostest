@@ -1,0 +1,1937 @@
+<!DOCTYPE html>
+<html lang="uz" class="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ARGOS.UZ - Davlat Fuqarolik Xizmatchilari Vakansiyalari va Word Viewer</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Maxsus Uslublar -->
+  <link rel="stylesheet" href="/static/css/style.css">
+
+  <!-- Mahaliy Word Rendering Kutubxonalari (Oflayn) -->
+  <script src="/static/js/jszip.min.js"></script>
+  <script src="/static/js/docx-preview.min.js"></script>
+</head>
+<body class="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-100 flex flex-col min-h-screen">
+
+  <!-- ======================================================================== -->
+  <!-- 1. YUQORI NAVIGATSIYA (ARGOS PORTAL STILIDA & LOKAL SERVER BRANDING) -->
+  <!-- ======================================================================== -->
+  <header class="bg-white dark:bg-[#131b4b] border-b border-slate-200/80 dark:border-[#a2ade8]/20 sticky top-0 z-40 shadow-xs transition-colors">
+
+    <div class="max-w-[1700px] mx-auto px-4 sm:px-6 h-18 sm:h-20 flex items-center justify-between gap-4">
+      
+      <!-- Chap tomon: Logo va Tizim Nomi (Lokal Server) -->
+      <div class="flex items-center space-x-3.5 shrink-0">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-700 to-indigo-700 flex items-center justify-center text-white text-xl shadow-sm">
+          🏛️
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <h1 class="text-base sm:text-lg font-black tracking-tight text-slate-900 dark:text-white leading-none">
+              ARGOS<span class="text-blue-600 dark:text-blue-400">.UZ</span>
+            </h1>
+            <span id="server-status-badge" class="px-2 py-0.5 text-[11px] font-bold rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700">
+              Lokal Server (127.0.0.1:5000)
+            </span>
+          </div>
+          <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium tracking-wide mt-0.5 hidden sm:block">
+            Davlat fuqarolik xizmatchilari vakant lavozimlarining yagona portali & Word Ko'ruvchi
+          </p>
+        </div>
+      </div>
+
+      <!-- O'rta: Rasmiy Navigatsiya Menyusi (vacancy.argos.uz kabi 100% mos) -->
+      <nav class="hidden lg:flex items-center gap-7 xl:gap-8">
+        <!-- Asosiy -->
+        <a href="https://vacancy.argos.uz/" target="_blank"
+          class="text-xs font-bold uppercase tracking-wider text-[#26292E] dark:text-white hover:text-[#3165cb] dark:hover:text-[#a2ade8] transition-colors py-2">
+          Asosiy
+        </a>
+
+        <!-- Vakansiyalar (Faol portal) -->
+        <a href="https://vacancy.argos.uz/hrm-vacancy-list" target="_blank"
+          class="text-xs font-black uppercase tracking-wider text-[#3165cb] dark:text-[#a2ade8] border-b-2 border-[#3165cb] dark:border-[#a2ade8] pb-1 py-2">
+          Vakansiyalar
+        </a>
+
+        <!-- Savollar (Dropdown menyu) -->
+        <div class="relative" id="questions-nav-item">
+          <button type="button" id="questions-nav-toggle"
+            class="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#26292E] dark:text-white hover:text-[#3165cb] dark:hover:text-[#a2ade8] transition-colors cursor-pointer py-2">
+            <span>Savollar</span>
+            <svg id="questions-chevron" class="w-3.5 h-3.5 transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+
+          <!-- Dropdown menyusi (Ko'p so'raladigan, Test savollari, Suhbat savollari) -->
+          <ul id="questions-dropdown" class="hidden questions-dropdown">
+            <li>
+              <a href="https://vacancy.argos.uz/faqs" target="_blank" class="questions-dropdown__item group">
+                <span class="questions-dropdown__icon">
+                  <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                  </svg>
+                </span>
+                <span class="questions-dropdown__body">
+                  <span class="questions-dropdown__title group-hover:text-[#3165cb] dark:group-hover:text-[#a2ade8] transition-colors">Ko‘p so‘raladigan</span>
+                  <span class="questions-dropdown__desc">Eng ko‘p beriladigan savollar va ularning javoblari.</span>
+                </span>
+                <span class="questions-dropdown__arrow">
+                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                  </svg>
+                </span>
+              </a>
+            </li>
+            <li>
+              <a href="https://vacancy.argos.uz/questions" target="_blank" class="questions-dropdown__item group">
+                <span class="questions-dropdown__icon">
+                  <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                    <polyline points="10 9 9 9 8 9"></polyline>
+                  </svg>
+                </span>
+                <span class="questions-dropdown__body">
+                  <span class="questions-dropdown__title group-hover:text-[#3165cb] dark:group-hover:text-[#a2ade8] transition-colors">Test savollari</span>
+                  <span class="questions-dropdown__desc">Imtihonga tayyorgarlik uchun namunaviy testlar.</span>
+                </span>
+                <span class="questions-dropdown__arrow">
+                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                  </svg>
+                </span>
+              </a>
+            </li>
+            <li>
+              <a href="https://vacancy.argos.uz/question-institution-groups" target="_blank" class="questions-dropdown__item group">
+                <span class="questions-dropdown__icon">
+                  <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                  </svg>
+                </span>
+                <span class="questions-dropdown__body">
+                  <span class="questions-dropdown__title group-hover:text-[#3165cb] dark:group-hover:text-[#a2ade8] transition-colors">Suhbat savollari</span>
+                  <span class="questions-dropdown__desc">Suhbat uchun tavsiya etilgan savollar va maslahatlar.</span>
+                </span>
+                <span class="questions-dropdown__arrow">
+                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                  </svg>
+                </span>
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Me'yoriy-huquqiy hujjatlar -->
+        <a href="https://vacancy.argos.uz/regulations" target="_blank"
+          class="text-xs font-bold uppercase tracking-wider text-[#26292E] dark:text-white hover:text-[#3165cb] dark:hover:text-[#a2ade8] transition-colors py-2">
+          Me'yoriy-huquqiy hujjatlar
+        </a>
+      </nav>
+
+      <!-- O'ng tomon: Test jarayonlarini onlayn kuzatish, Word tarixi va Mavzu -->
+      <div class="flex items-center space-x-2.5 sm:space-x-3">
+        <!-- 3-rasmdagi: Test jarayonlarini onlayn kuzatish (testing-live monitor icon) -->
+        <a href="https://vacancy.argos.uz/testing-live" target="_blank" 
+          class="header-icon-btn" 
+          title="Test jarayonlarini onlayn kuzatish">
+          <svg class="w-4 h-4 text-[#3165cb] dark:text-[#dfe6f4]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+            <line x1="8" y1="21" x2="16" y2="21"></line>
+            <line x1="12" y1="17" x2="12" y2="21"></line>
+          </svg>
+          <span class="header-icon-btn__dot animate-pulse"></span>
+        </a>
+
+        <!-- Word Hujjatlar tarixi -->
+        <button id="btn-history-toggle" class="flex items-center space-x-1.5 px-3 py-2 text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition shadow-2xs cursor-pointer" title="Yaratilgan Word (.docx) hujjatlari arxivi">
+          <span>📚</span>
+          <span class="hidden sm:inline">Word tarixi</span>
+          <span id="history-badge" class="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-300 font-extrabold">0</span>
+        </button>
+
+        <!-- Kompyuterdan Word ochish -->
+        <label for="local-file-input" class="cursor-pointer flex items-center space-x-1.5 px-3 py-2 text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition shadow-2xs" title="Kompyuterdan mavjud Word (.docx) faylini ochish">
+          <span>📂</span>
+          <span class="hidden xl:inline">Fayl ochish</span>
+          <input type="file" id="local-file-input" accept=".docx" class="hidden">
+        </label>
+
+        <!-- Dark/Light Mode -->
+        <button id="btn-theme-toggle" class="w-10 h-10 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 hover:bg-slate-100 dark:hover:bg-slate-700 transition flex items-center justify-center text-slate-600 dark:text-slate-300 shadow-2xs cursor-pointer" title="Mavzuni o'zgartirish">
+          <span id="theme-icon">🌙</span>
+        </button>
+
+        <!-- Mobil Menyu Tugmasi (Kichik ekranlar uchun) -->
+        <button type="button" id="btn-mobile-nav-toggle" class="lg:hidden w-10 h-10 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 hover:bg-slate-100 dark:hover:bg-slate-700 transition flex items-center justify-center text-slate-700 dark:text-slate-200 shadow-2xs cursor-pointer" title="Menyuni ochish/yopish">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Mobil Navigatsiya Paneli (Drawer) -->
+    <div id="mobile-nav-drawer" class="hidden lg:hidden bg-white dark:bg-[#131b4b] border-t border-slate-200/80 dark:border-[#a2ade8]/20 px-4 py-3 space-y-2 shadow-lg transition-all">
+      <a href="https://vacancy.argos.uz/" target="_blank" class="block py-2 px-3 rounded-lg text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-800 transition">
+        Asosiy ↗
+      </a>
+      <a href="https://vacancy.argos.uz/hrm-vacancy-list" target="_blank" class="block py-2 px-3 rounded-lg text-xs font-black uppercase tracking-wider text-[#3165cb] dark:text-[#a2ade8] bg-blue-50/50 dark:bg-blue-950/40">
+        Vakansiyalar (Rasmiy) ↗
+      </a>
+      <div class="py-1 px-3 border-y border-slate-100 dark:border-slate-700/60 my-1 space-y-1">
+        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Savollar:</span>
+        <a href="https://vacancy.argos.uz/faqs" target="_blank" class="block py-1 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:text-blue-600">
+          ❓ Ko‘p so‘raladigan savollar ↗
+        </a>
+        <a href="https://vacancy.argos.uz/questions" target="_blank" class="block py-1 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:text-blue-600">
+          📝 Test savollari ↗
+        </a>
+        <a href="https://vacancy.argos.uz/question-institution-groups" target="_blank" class="block py-1 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:text-blue-600">
+          👥 Suhbat savollari ↗
+        </a>
+      </div>
+      <a href="https://vacancy.argos.uz/regulations" target="_blank" class="block py-2 px-3 rounded-lg text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-800 transition">
+        Me'yoriy-huquqiy hujjatlar ↗
+      </a>
+      <a href="https://vacancy.argos.uz/testing-live" target="_blank" class="flex items-center gap-2 py-2 px-3 rounded-lg text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-50/70 dark:bg-blue-900/30">
+        <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+        Test jarayonlarini onlayn kuzatish (Live) ↗
+      </a>
+    </div>
+  </header>
+
+  <!-- ======================================================================== -->
+  <!-- 2. ASOSIY MAYDON: 2-USTUNLI ARGOS STRUKTURASI -->
+  <!-- Chap ustun: Filtrlar | O'ng ustun: Word Viewer -->
+  <!-- ======================================================================== -->
+  <main class="flex-1 max-w-[1700px] w-full mx-auto px-3 sm:px-5 py-4 flex flex-col lg:flex-row gap-5 items-start">
+
+    <!-- ====================================================================== -->
+    <!-- CHAP USTUN: FILTRLAR PANELI (vacancy.argos.uz 100% rasmiy ko'rinish) -->
+    <!-- ====================================================================== -->
+    <aside class="w-full lg:w-[275px] xl:w-[290px] shrink-0 sticky lg:top-20">
+      <div class="bg-[#f8fafd] dark:bg-slate-800/90 rounded-2xl border border-slate-200/70 dark:border-slate-700/70 p-4 sm:p-5 shadow-xs space-y-4">
+        
+        <!-- 1. Hudud & Tuman/shahar -->
+        <div>
+          <label for="filter-region" class="block text-sm font-bold text-slate-800 dark:text-slate-100 mb-1.5">
+            Hudud
+          </label>
+          <div class="relative">
+            <select id="filter-region" 
+              class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 pr-9 text-sm text-slate-700 dark:text-slate-200 appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 shadow-xs cursor-pointer transition">
+              <option value="" disabled selected hidden>Hududni tanlang</option>
+              <option value="">Barchasi</option>
+            </select>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Tuman/shahar (to'g'ridan-to'g'ri Hudud ostida, labelsiz) -->
+          <div class="relative mt-2.5">
+            <select id="filter-district" disabled
+              class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 pr-9 text-sm text-slate-700 dark:text-slate-200 appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 shadow-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition">
+              <option value="" disabled selected hidden>Tuman/shaharni tanlang</option>
+              <option value="">Barchasi</option>
+            </select>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Tashkilotlar -->
+        <div>
+          <label for="filter-org" class="block text-sm font-bold text-slate-800 dark:text-slate-100 mb-1.5">
+            Tashkilotlar
+          </label>
+          <div class="relative">
+            <select id="filter-org" 
+              class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 pr-9 text-sm text-slate-700 dark:text-slate-200 appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 shadow-xs cursor-pointer transition">
+              <option value="" disabled selected hidden>Tashkilotni tanlang</option>
+              <option value="">Barchasi</option>
+            </select>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Lavozim turi -->
+        <div>
+          <label for="filter-direction" class="block text-sm font-bold text-slate-800 dark:text-slate-100 mb-1.5">
+            Lavozim turi
+          </label>
+          <div class="relative">
+            <select id="filter-direction" 
+              class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 pr-9 text-sm text-slate-700 dark:text-slate-200 appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 shadow-xs cursor-pointer transition">
+              <option value="" selected>Barchasi</option>
+              <option value="1">Sogliqni saqlash</option>
+              <option value="2">Davlat fuqarolik xizmatchisi</option>
+              <option value="3">Boshqalar</option>
+            </select>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Tanlov turlari -->
+        <div>
+          <label for="filter-choice" class="block text-sm font-bold text-slate-800 dark:text-slate-100 mb-1.5">
+            Tanlov turlari
+          </label>
+          <div class="relative flex items-center">
+            <select id="filter-choice" 
+              class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 pr-14 text-sm text-slate-700 dark:text-slate-200 appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 shadow-xs cursor-pointer transition">
+              <option value="" selected>Barchasi</option>
+              <option value="0">Tashqi tanlov</option>
+              <option value="1">Ichki tanlov(tashkilot doirasida)</option>
+              <option value="2">Ichki tanlov(barcha DFX tashkilotlar doirasida)</option>
+            </select>
+            <div class="absolute inset-y-0 right-0 flex items-center pr-3 space-x-1.5">
+              <button type="button" id="btn-clear-choice" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs p-0.5 rounded cursor-pointer" title="Tozalash">
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+              <div class="pointer-events-none text-slate-400">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. Test turi -->
+        <div>
+          <label for="filter-test-type" class="block text-sm font-bold text-slate-800 dark:text-slate-100 mb-1.5">
+            Test turi
+          </label>
+          <div class="relative">
+            <select id="filter-test-type" 
+              class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 pr-9 text-sm text-slate-700 dark:text-slate-200 appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 shadow-xs cursor-pointer transition">
+              <option value="" selected>Barchasi</option>
+              <option value="dfx_all">Davlat fuqarolik xizmati (Barchasi)</option>
+              <option value="4">Davlat fuqarolik xizmatchisi (Boshqaruv xodimi)</option>
+              <option value="5">Davlat fuqarolik xizmatchisi (Mutaxassis)</option>
+              <option value="1225">Hamshiralik ishi</option>
+              <option value="1226">Shifokorlar uchun</option>
+              <option value="0">Test talab etilmaydi</option>
+            </select>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- 6. Lavozim darajasi -->
+        <div>
+          <label for="filter-degree" class="block text-sm font-bold text-slate-800 dark:text-slate-100 mb-1.5">
+            Lavozim darajasi
+          </label>
+          <div class="relative">
+            <select id="filter-degree" 
+              class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 pr-9 text-sm text-slate-700 dark:text-slate-200 appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 shadow-xs cursor-pointer transition">
+              <option value="" disabled selected hidden>Lavozim darajasini tanl...</option>
+              <option value="">Barchasi</option>
+              <option value="5">Milliy</option>
+              <option value="1">Respublika</option>
+              <option value="3">Hududiy</option>
+              <option value="4">Tuman</option>
+              <option value="2">Fillial</option>
+            </select>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- 7. Minimal mehnat staji -->
+        <div>
+          <label for="filter-exp" class="block text-sm font-bold text-slate-800 dark:text-slate-100 mb-1.5">
+            Minimal mehnat staji
+          </label>
+          <div class="relative">
+            <select id="filter-exp" 
+              class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 pr-9 text-sm text-slate-700 dark:text-slate-200 appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 shadow-xs cursor-pointer transition">
+              <option value="" disabled selected hidden>Minimal stajini tanlang</option>
+              <option value="">Barchasi</option>
+              <option value="0">Mehnat staji talab etilmaydi</option>
+              <option value="1">1 yil</option>
+              <option value="2">2 yil</option>
+              <option value="3">3 yil</option>
+              <option value="4">4 yil</option>
+              <option value="5">5 yil</option>
+              <option value="6">5 yil yoki undan ortiq</option>
+            </select>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- 8. Ish haqi -->
+        <div>
+          <label for="filter-salary" class="block text-sm font-bold text-slate-800 dark:text-slate-100 mb-1.5">
+            Ish haqi
+          </label>
+          <div class="relative">
+            <select id="filter-salary" 
+              class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 pr-9 text-sm text-slate-700 dark:text-slate-200 appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 shadow-xs cursor-pointer transition">
+              <option value="" disabled selected hidden>Ish haqini tanlang</option>
+              <option value="">Farq qilmaydi</option>
+              <option value="1500000">1 500 000 dan</option>
+              <option value="2500000">2 500 000 dan</option>
+              <option value="3500000">3 500 000 dan</option>
+              <option value="4500000">4 500 000 dan</option>
+              <option value="5500000">5 500 000 dan</option>
+              <option value="6500000">6 500 000 dan</option>
+            </select>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- 9. Nogironligi bo'lgan shaxslar uchun -->
+        <div class="pt-1">
+          <label class="inline-flex items-center space-x-2.5 cursor-pointer select-none">
+            <input type="checkbox" id="filter-disability" 
+              class="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-blue-500 cursor-pointer accent-blue-600">
+            <span class="text-sm font-medium text-slate-700 dark:text-slate-300">
+              Nogironligi bo'lgan shaxslar uchun
+            </span>
+          </label>
+        </div>
+
+        <!-- 10. Filtrni tozalash -->
+        <div class="pt-2 text-center">
+          <button type="button" id="btn-clear-all-filters" 
+            class="text-sm text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition cursor-pointer font-normal">
+            Filtrni tozalash
+          </button>
+        </div>
+
+      </div>
+    </aside>
+
+    <!-- ====================================================================== -->
+    <!-- O'NG USTUN: IN-BROWSER WORD DOCUMENT VIEWER (ASOSIY WORKSPACE) -->
+    <!-- ====================================================================== -->
+    <section class="flex-1 w-full flex flex-col min-w-0 bg-white dark:bg-slate-800 rounded-xl shadow-xs border border-slate-200 dark:border-slate-700 overflow-hidden min-h-[calc(100vh-140px)]">
+      
+      <!-- ====================================================================== -->
+      <!-- YUQORI KALIT SO'Z VA QIDIRUV BLOKI (vacancy.argos.uz uslubida) -->
+      <!-- ====================================================================== -->
+      <div class="bg-white dark:bg-slate-800 p-3 sm:p-4 border-b border-slate-200 dark:border-slate-700">
+        <div class="flex flex-col sm:flex-row items-center gap-2.5">
+          <!-- Qidiruv maydoni (Izlash) -->
+          <div class="relative flex-1 w-full">
+            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
+              <svg class="w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M11.0833 18.4167C15.1334 18.4167 18.4167 15.1334 18.4167 11.0833C18.4167 7.03325 15.1334 3.75 11.0833 3.75C7.03325 3.75 3.75 7.03325 3.75 11.0833C3.75 15.1334 7.03325 18.4167 11.0833 18.4167Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M20.2502 20.25L16.2627 16.2625" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <input type="text" id="input-search"
+              class="w-full pl-10 pr-9 py-2.5 text-xs sm:text-sm bg-slate-50 dark:bg-slate-900/80 border border-slate-300 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 font-medium transition"
+              placeholder="Kasb, lavozim, vakansiya yoki tashkilot nomi bo'yicha qidiruv (Masalan: iqtisodchi, bosh mutaxassis)...">
+            <button type="button" id="btn-clear-search" class="hidden absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-sm" title="Tozalash">
+              ✕
+            </button>
+          </div>
+
+          <!-- Skanerlash va Boshqaruv tugmalari -->
+          <div class="flex items-center gap-2 w-full sm:w-auto shrink-0">
+            <button type="button" id="btn-search-top"
+              class="flex-1 sm:flex-none px-5 py-2.5 text-xs sm:text-sm font-bold rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white shadow-xs shadow-blue-500/20 transition flex items-center justify-center space-x-2">
+              <span id="btn-search-top-icon">🚀</span>
+              <span id="btn-search-top-text">Skanerlash</span>
+            </button>
+
+            <button type="button" id="btn-stop-top" disabled
+              class="px-3.5 py-2.5 text-xs font-semibold rounded-xl bg-rose-50 text-rose-700 hover:bg-rose-100 dark:bg-rose-900/40 dark:text-rose-300 border border-rose-200 dark:border-rose-800 transition disabled:opacity-40 disabled:cursor-not-allowed"
+              title="Jarayonni to'xtatish">
+              <span id="btn-stop-top-icon">⏹️</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- XABARNOMA VA OGOHLANTIRISH BANNERI (Dinamik) -->
+      <div id="notification-banner" class="hidden m-3 p-3.5 rounded-xl border text-xs flex items-start space-x-2.5 transition-all">
+        <span id="notif-icon" class="text-base shrink-0">ℹ️</span>
+        <div class="flex-1">
+          <h4 id="notif-title" class="font-bold">Xabarnoma</h4>
+          <p id="notif-message" class="text-slate-600 dark:text-slate-300 mt-0.5">Xabar matni...</p>
+        </div>
+        <button type="button" id="btn-close-notif" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer">✕</button>
+      </div>
+
+      <!-- JONLI PROGRESS VA TOPILGANLAR (Silliq va zamonaviy) -->
+      <div id="progress-card" class="hidden px-4 py-3 bg-blue-50/90 dark:bg-slate-800/95 border-b border-blue-100 dark:border-slate-700 transition-all">
+        <div class="flex items-center justify-between mb-1.5">
+          <div class="flex items-center space-x-2 truncate">
+            <div class="w-2 h-2 rounded-full bg-blue-600 animate-ping"></div>
+            <span id="progress-status-title" class="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">
+              Jarayon bajarilmoqda...
+            </span>
+          </div>
+          <span id="progress-percent" class="text-xs font-extrabold text-blue-600 dark:text-blue-400">0%</span>
+        </div>
+
+        <div class="w-full bg-blue-200/50 dark:bg-slate-700 rounded-full h-1.5 overflow-hidden mb-1.5">
+          <div id="progress-bar" class="bg-blue-600 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+        </div>
+
+        <div id="live-found-container" class="hidden text-[11px] font-semibold text-slate-600 dark:text-slate-400 flex justify-between">
+          <span>Topilgan mos vakansiyalar: <span id="live-found-count" class="font-bold text-blue-600 dark:text-blue-400">0 ta</span></span>
+          <span id="live-found-list" class="hidden"></span>
+        </div>
+      </div>
+
+      <!-- ====================================================================== -->
+      <!-- KO'RINISHLAR BOSHQARUVI VA ASBOBLAR PANELI -->
+      <!-- ====================================================================== -->
+      <div class="bg-slate-50 dark:bg-slate-800/90 border-b border-slate-200 dark:border-slate-700 px-3 sm:px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 z-20">
+        
+        <!-- Chap: Ko'rinish tablari (Kartalar vs Word) -->
+        <div class="flex items-center space-x-2">
+          <div class="inline-flex rounded-xl p-1 bg-slate-200/70 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-700 text-xs">
+            <button type="button" id="tab-cards-btn"
+              class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg font-bold transition shadow-xs bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400">
+              <span>📋</span>
+              <span>Vakansiyalar kartalari</span>
+              <span id="tab-cards-badge" class="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-300 font-black">0 ta</span>
+            </button>
+            
+            <button type="button" id="tab-docx-btn"
+              class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg font-medium transition text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white">
+              <span>📄</span>
+              <span>Word hujjati</span>
+              <span id="tab-docx-badge" class="hidden ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300 font-bold">Tayyor</span>
+            </button>
+          </div>
+
+          <!-- Tanlangan hujjat nomi (kichik ko'rsatkich) -->
+          <div class="hidden lg:flex items-center space-x-2 pl-2 border-l border-slate-200 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400 truncate max-w-xs">
+            <span class="w-2 h-2 rounded-full bg-blue-500 shrink-0"></span>
+            <span id="current-doc-name" class="truncate font-semibold">Hujjat tanlanmagan</span>
+            <span id="current-doc-badge" class="hidden">0 ta</span>
+            <span id="current-doc-meta" class="hidden"></span>
+          </div>
+        </div>
+
+        <!-- O'ng: Word boshqaruvlari va Yuklab olish -->
+        <div class="flex items-center flex-wrap gap-2">
+          
+          <!-- Word ko'rish rejimlari va zoom (Faqat Word tabida kerak) -->
+          <div id="docx-toolbar-tools" class="hidden flex items-center flex-wrap gap-2">
+            <!-- Rejim: Sahifalar / O'qish -->
+            <div class="inline-flex rounded-lg border border-slate-300 dark:border-slate-600 p-0.5 bg-white dark:bg-slate-800 text-xs">
+              <button type="button" id="btn-mode-page" class="px-2.5 py-1 rounded-md font-semibold transition bg-blue-50 dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs" title="A4 sahifalari ko'rinishi">
+                📄 Sahifalar
+              </button>
+              <button type="button" id="btn-mode-reader" class="px-2.5 py-1 rounded-md font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition" title="Toza matn o'qish">
+                📖 O'qish
+              </button>
+            </div>
+
+            <!-- Zoom boshqaruvi -->
+            <div id="zoom-controls" class="flex items-center space-x-1 rounded-lg border border-slate-300 dark:border-slate-600 px-1 py-0.5 bg-white dark:bg-slate-800 text-xs">
+              <button type="button" id="btn-zoom-out" class="p-1 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded" title="Kichiklashtirish">➖</button>
+              <button type="button" id="btn-zoom-reset" class="px-1.5 py-0.5 font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded" title="100% ga qaytarish">100%</button>
+              <button type="button" id="btn-zoom-in" class="p-1 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded" title="Kattalashtirish">➕</button>
+              <button type="button" id="btn-fit-width" class="px-1.5 py-0.5 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded border-l border-slate-200 dark:border-slate-700 ml-0.5 font-medium" title="Kenglikka moslash">↔️</button>
+            </div>
+
+            <!-- Fullscreen (To'liq ekran) -->
+            <button type="button" id="btn-fullscreen"
+              class="px-2.5 py-1 text-xs font-semibold rounded-lg border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition flex items-center gap-1 cursor-pointer" title="To'liq ekranga yoyish">
+              <span id="btn-fullscreen-icon">⛶</span>
+              <span id="btn-fullscreen-text" class="hidden sm:inline">To'liq ekran</span>
+            </button>
+
+            <!-- Chop etish -->
+            <button type="button" id="btn-print" disabled
+              class="px-2.5 py-1 text-xs font-semibold rounded-lg border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition disabled:opacity-40 disabled:cursor-not-allowed" title="Chop etish">
+              🖨️ Chop etish
+            </button>
+          </div>
+
+          <!-- Word (.docx) Yuklab olish tugmasi -->
+          <a id="btn-download" href="#" download disabled
+            class="px-3.5 py-1.5 text-xs font-bold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition shadow-xs flex items-center space-x-1.5 disabled:opacity-40 disabled:pointer-events-none">
+            <span>📥</span>
+            <span>Word (.docx)</span>
+          </a>
+
+        </div>
+      </div>
+
+      <!-- ====================================================================== -->
+      <!-- 1. VAKANSIYALAR KARTALARI KO'RINISHI (vacancy.argos.uz kabi 100% mos) -->
+      <!-- ====================================================================== -->
+      <div id="cards-view" class="flex-1 p-3.5 sm:p-5 overflow-y-auto space-y-4 max-h-[calc(100vh-190px)]">
+        
+        <!-- Boshlang'ich holat (Cards bo'sh bo'lganda) -->
+        <div id="cards-empty-state" class="my-auto text-center max-w-lg p-8 mx-auto bg-white dark:bg-slate-800/90 rounded-2xl shadow-xs border border-slate-200 dark:border-slate-700 my-10">
+          <div class="w-16 h-16 rounded-2xl bg-blue-50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 mx-auto flex items-center justify-center text-3xl mb-4 shadow-inner">
+            🏛️
+          </div>
+          <h4 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-2">
+            Vakansiyalar Ro'yxati (Argos Kartalari)
+          </h4>
+          <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mb-6 leading-relaxed">
+            Chap ustundagi filtrlarni tanlab yoki yuqoridagi qidiruv maydonidan kasb nomini yozib, <span class="font-bold text-blue-600 dark:text-blue-400">"Skanerlash"</span> tugmasini bosing. Vakansiyalar xuddi <span class="font-bold">vacancy.argos.uz</span> kabi kartalar ko'rinishida chiqariladi.
+          </p>
+          <div class="flex flex-col sm:flex-row gap-2.5 justify-center">
+            <button type="button" id="btn-cards-open-latest" class="px-5 py-2.5 text-xs font-bold rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition shadow-sm">
+              Oxirgi yaratilgan vakansiyalarni ko'rish
+            </button>
+          </div>
+        </div>
+
+        <!-- Jonli Kartalar Ro'yxati -->
+        <div id="cards-list" class="space-y-4 hidden">
+          <!-- Dinamik ravishda har bir vakansiya kartasi shu yerga qo'shiladi -->
+        </div>
+
+      </div>
+
+      <!-- Asosiy Word Ko'rish Konteyneri -->
+      <div id="docx-container" class="relative flex-1 p-4 flex flex-col items-center justify-start min-h-[650px] overflow-auto hidden">
+        
+        <!-- Bo'sh boshlang'ich holat (Welcome) -->
+        <div id="empty-state" class="my-auto text-center max-w-lg p-8 bg-white dark:bg-slate-800/90 rounded-2xl shadow-xs border border-slate-200 dark:border-slate-700">
+          <div class="w-16 h-16 rounded-2xl bg-blue-50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 mx-auto flex items-center justify-center text-3xl mb-4 shadow-inner">
+            📄
+          </div>
+          <h4 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-2">
+            In-Browser Word Document Viewer
+          </h4>
+          <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mb-6 leading-relaxed">
+            Chap ustundagi filtrlar orqali kerakli hudud, tuman yoki test turini tanlab, <span class="font-bold text-blue-600 dark:text-blue-400">"Skanerlash va Word yaratish"</span> tugmasini bosing. Yaratilgan Word hujjati ushbu o'ng ekranda sahifalari bilan to'liq ochiladi.
+          </p>
+          <div class="flex flex-col sm:flex-row gap-2.5 justify-center">
+            <button type="button" id="btn-open-latest" class="px-5 py-2.5 text-xs font-bold rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition shadow-sm">
+              Oxirgi yaratilgan Wordni ko'rish
+            </button>
+          </div>
+        </div>
+
+        <!-- Yuklanish indikatori (Spinner) -->
+        <div id="loading-state" class="hidden my-auto text-center p-8">
+          <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent mb-3"></div>
+          <p id="loading-text" class="text-sm font-bold text-slate-800 dark:text-slate-200">
+            Word hujjati sahifalari chizilmoqda...
+          </p>
+        </div>
+
+        <!-- docx-preview A4 Sahifali ko'rinish -->
+        <div id="zoom-wrapper" class="w-full flex justify-center hidden">
+          <div id="docx-render-target" class="w-full flex flex-col items-center">
+            <!-- A4 sahifalar shu yerga chiziladi -->
+          </div>
+        </div>
+
+        <!-- Mammoth HTML O'qish Rejimi -->
+        <div id="reader-wrapper" class="w-full max-w-4xl py-6 hidden">
+          <div id="mammoth-target" class="mammoth-content bg-white rounded-xl shadow-md p-8">
+            <!-- Toza HTML matn shu yerga joylashadi -->
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ======================================================================== -->
+  <!-- 3. HUJJATLAR TARIXI MODAL (DRAWER) -->
+  <!-- ======================================================================== -->
+  <div id="history-modal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex justify-end hidden transition-opacity">
+    <div class="bg-white dark:bg-slate-800 w-full max-w-md h-full shadow-2xl flex flex-col border-l border-slate-200 dark:border-slate-700">
+      <div class="px-5 py-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+          <span class="text-lg">📚</span>
+          <h3 class="text-base font-bold text-slate-900 dark:text-white">Yaratilgan Word Hujjatlari</h3>
+        </div>
+        <button id="btn-close-history" class="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 rounded-lg text-lg">
+          ✕
+        </button>
+      </div>
+
+      <div class="p-3 bg-slate-50 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center text-xs">
+        <span class="text-slate-500 dark:text-slate-400">Jild: <code class="text-blue-600 dark:text-blue-400">exports/</code></span>
+        <button id="btn-refresh-history" class="text-blue-600 dark:text-blue-400 font-semibold hover:underline flex items-center space-x-1">
+          <span>🔄 Yangilash</span>
+        </button>
+      </div>
+
+      <div id="history-list" class="flex-1 overflow-y-auto p-4 space-y-3">
+        <!-- Dinamik tarix kartalari -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================== -->
+  <!-- 4. JAVASCRIPT LOGIKA VA BOSHQARUV -->
+  <!-- ======================================================================== -->
+  <script>
+    // Holat o'zgaruvchilari
+    let currentScale = 1.0;
+    let currentViewMode = "page"; // "page" yoki "reader"
+    let currentDocxBlob = null;
+    let currentDocxFilename = null;
+    let scanController = null;
+
+    // DOM Elementlari
+    const themeToggleBtn = document.getElementById("btn-theme-toggle");
+    const themeIcon = document.getElementById("theme-icon");
+
+    // Argos 100% Filtr Elementlari
+    const filterRegion = document.getElementById("filter-region");
+    const filterDistrict = document.getElementById("filter-district");
+    const filterOrg = document.getElementById("filter-org");
+    const filterDirection = document.getElementById("filter-direction");
+    const filterChoice = document.getElementById("filter-choice");
+    const btnClearChoice = document.getElementById("btn-clear-choice");
+    const filterTestType = document.getElementById("filter-test-type");
+    const filterDegree = document.getElementById("filter-degree");
+    const filterExp = document.getElementById("filter-exp");
+    const filterSalary = document.getElementById("filter-salary");
+    const filterDisability = document.getElementById("filter-disability");
+    const btnClearAllFilters = document.getElementById("btn-clear-all-filters");
+
+    // Qidiruv va Skanerlash boshqaruvi
+    const inputSearch = document.getElementById("input-search");
+    const btnClearSearch = document.getElementById("btn-clear-search");
+    const btnSearchTop = document.getElementById("btn-search-top");
+    const btnSearchTopIcon = document.getElementById("btn-search-top-icon");
+    const btnSearchTopText = document.getElementById("btn-search-top-text");
+    const btnStopTop = document.getElementById("btn-stop-top");
+
+    // Progress va xabarnomalar
+    const progressCard = document.getElementById("progress-card");
+    const progressBar = document.getElementById("progress-bar");
+    const progressPercent = document.getElementById("progress-percent");
+    const progressStatusTitle = document.getElementById("progress-status-title");
+    const liveFoundContainer = document.getElementById("live-found-container");
+    const liveFoundCount = document.getElementById("live-found-count");
+    const liveFoundList = document.getElementById("live-found-list");
+
+    const docxContainer = document.getElementById("docx-container");
+    const emptyState = document.getElementById("empty-state");
+    const loadingState = document.getElementById("loading-state");
+    const loadingText = document.getElementById("loading-text");
+    const zoomWrapper = document.getElementById("zoom-wrapper");
+    const docxRenderTarget = document.getElementById("docx-render-target");
+    const readerWrapper = document.getElementById("reader-wrapper");
+    const mammothTarget = document.getElementById("mammoth-target");
+
+    const currentDocName = document.getElementById("current-doc-name");
+    const currentDocBadge = document.getElementById("current-doc-badge");
+    const currentDocMeta = document.getElementById("current-doc-meta");
+    const btnModePage = document.getElementById("btn-mode-page");
+    const btnModeReader = document.getElementById("btn-mode-reader");
+    const btnZoomIn = document.getElementById("btn-zoom-in");
+    const btnZoomOut = document.getElementById("btn-zoom-out");
+    const btnZoomReset = document.getElementById("btn-zoom-reset");
+    const btnFitWidth = document.getElementById("btn-fit-width");
+    const btnPrint = document.getElementById("btn-print");
+    const btnDownload = document.getElementById("btn-download");
+
+    const historyModal = document.getElementById("history-modal");
+    const btnHistoryToggle = document.getElementById("btn-history-toggle");
+    const btnCloseHistory = document.getElementById("btn-close-history");
+    const btnRefreshHistory = document.getElementById("btn-refresh-history");
+    const historyList = document.getElementById("history-list");
+    const historyBadge = document.getElementById("history-badge");
+    const btnCardsOpenLatest = document.getElementById("btn-cards-open-latest");
+    const localFileInput = document.getElementById("local-file-input");
+
+    const tabCardsBtn = document.getElementById("tab-cards-btn");
+    const tabDocxBtn = document.getElementById("tab-docx-btn");
+    const tabCardsBadge = document.getElementById("tab-cards-badge");
+    const tabDocxBadge = document.getElementById("tab-docx-badge");
+    const docxToolbarTools = document.getElementById("docx-toolbar-tools");
+    const cardsView = document.getElementById("cards-view");
+    const cardsEmptyState = document.getElementById("cards-empty-state");
+    const cardsList = document.getElementById("cards-list");
+    let currentVacancies = [];
+    let activeWorkspaceTab = "cards";
+
+    // =========================================================================
+    // 1. MAVZU (DARK / LIGHT) SOZLAMASI
+    // =========================================================================
+    function initTheme() {
+      const saved = localStorage.getItem("theme");
+      if (saved === "dark" || (!saved && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+        document.documentElement.classList.add("dark");
+        themeIcon.textContent = "☀️";
+      } else {
+        document.documentElement.classList.remove("dark");
+        themeIcon.textContent = "🌙";
+      }
+    }
+
+    themeToggleBtn.addEventListener("click", () => {
+      const isDark = document.documentElement.classList.toggle("dark");
+      localStorage.setItem("theme", isDark ? "dark" : "light");
+      themeIcon.textContent = isDark ? "☀️" : "🌙";
+    });
+
+    // =========================================================================
+    // 1.1. SAVOLLAR DROPDOWN BOSHQARUVI (vacancy.argos.uz kabi)
+    // =========================================================================
+    const questionsNavItem = document.getElementById("questions-nav-item");
+    const questionsNavToggle = document.getElementById("questions-nav-toggle");
+    const questionsDropdown = document.getElementById("questions-dropdown");
+    const questionsChevron = document.getElementById("questions-chevron");
+
+    if (questionsNavToggle && questionsDropdown) {
+      const openQuestionsDropdown = () => {
+        questionsDropdown.classList.remove("hidden");
+        if (questionsChevron) questionsChevron.classList.add("rotate-180");
+      };
+
+      const closeQuestionsDropdown = () => {
+        questionsDropdown.classList.add("hidden");
+        if (questionsChevron) questionsChevron.classList.remove("rotate-180");
+      };
+
+      questionsNavToggle.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const isHidden = questionsDropdown.classList.contains("hidden");
+        if (isHidden) {
+          openQuestionsDropdown();
+        } else {
+          closeQuestionsDropdown();
+        }
+      });
+
+      if (questionsNavItem) {
+        questionsNavItem.addEventListener("mouseleave", () => {
+          closeQuestionsDropdown();
+        });
+      }
+
+      document.addEventListener("click", (e) => {
+        if (!questionsDropdown.contains(e.target) && !questionsNavToggle.contains(e.target)) {
+          closeQuestionsDropdown();
+        }
+      });
+    }
+
+    // =========================================================================
+    // 2. VILOYAT, TUMAN VA TASHKILOTLARNI YUKLASH VA KASKAD BOG'LANISH
+    // =========================================================================
+    async function loadRegions() {
+      try {
+        const res = await fetch("/api/regions");
+        const regions = await res.json();
+        regions.forEach(r => {
+          const opt = document.createElement("option");
+          opt.value = r.value;
+          opt.textContent = r.name;
+          filterRegion.appendChild(opt);
+        });
+      } catch (err) {
+        console.error("Viloyatlarni yuklashda xatolik:", err);
+      }
+    }
+
+    async function loadOrganizations(regionId = null, districtId = null) {
+      try {
+        let url = "/api/organizations?";
+        if (regionId && regionId !== "0" && regionId !== "") {
+          url += `region=${encodeURIComponent(regionId)}&`;
+        }
+        if (districtId && districtId !== "0" && districtId !== "") {
+          url += `district=${encodeURIComponent(districtId)}&`;
+        }
+        const res = await fetch(url);
+        const orgs = await res.json();
+        filterOrg.innerHTML = '<option value="" disabled selected hidden>Tashkilotni tanlang</option><option value="">Barchasi</option>';
+        orgs.forEach(o => {
+          const opt = document.createElement("option");
+          opt.value = o.id;
+          opt.textContent = o.name;
+          filterOrg.appendChild(opt);
+        });
+      } catch (err) {
+        console.error("Tashkilotlarni yuklashda xatolik:", err);
+      }
+    }
+
+    filterRegion.addEventListener("change", async () => {
+      const val = filterRegion.value;
+      filterDistrict.innerHTML = '<option value="" disabled selected hidden>Tuman/shaharni tanlang</option><option value="">Barchasi</option>';
+      if (!val) {
+        filterDistrict.disabled = true;
+        loadOrganizations();
+        return;
+      }
+
+      filterDistrict.disabled = false;
+      try {
+        const res = await fetch(`/api/districts?region=${encodeURIComponent(val)}`);
+        const districts = await res.json();
+        districts.forEach(d => {
+          const opt = document.createElement("option");
+          opt.value = d.value;
+          opt.textContent = d.name;
+          filterDistrict.appendChild(opt);
+        });
+      } catch (err) {
+        console.error("Tumanlarni yuklashda xatolik:", err);
+      }
+      loadOrganizations(val, null);
+    });
+
+    filterDistrict.addEventListener("change", () => {
+      loadOrganizations(filterRegion.value, filterDistrict.value);
+    });
+
+    if (btnClearChoice) {
+      btnClearChoice.addEventListener("click", (e) => {
+        e.preventDefault();
+        filterChoice.value = "";
+      });
+    }
+
+    if (btnClearAllFilters) {
+      btnClearAllFilters.addEventListener("click", () => {
+        filterRegion.selectedIndex = 0;
+        filterDistrict.innerHTML = '<option value="" disabled selected hidden>Tuman/shaharni tanlang</option><option value="">Barchasi</option>';
+        filterDistrict.disabled = true;
+        filterOrg.innerHTML = '<option value="" disabled selected hidden>Tashkilotni tanlang</option><option value="">Barchasi</option>';
+        filterDirection.selectedIndex = 0;
+        filterChoice.selectedIndex = 0;
+        if (filterTestType) filterTestType.selectedIndex = 0;
+        filterDegree.selectedIndex = 0;
+        filterExp.selectedIndex = 0;
+        filterSalary.selectedIndex = 0;
+        filterDisability.checked = false;
+        inputSearch.value = "";
+        if (btnClearSearch) btnClearSearch.classList.add("hidden");
+        loadOrganizations();
+        showNotification("Filtrlar tozalandi", "Barcha qidiruv filtrlari dastlabki holatga qaytarildi.", "info");
+      });
+    }
+
+    // =========================================================================
+    // 3. XABARNOMALAR (BANNER VA AVTOMATIK YOPILISH)
+    // =========================================================================
+    let notifTimeout = null;
+
+    function showNotification(title, message, type = "info") {
+      const banner = document.getElementById("notification-banner");
+      const icon = document.getElementById("notif-icon");
+      const t = document.getElementById("notif-title");
+      const m = document.getElementById("notif-message");
+
+      if (notifTimeout) {
+        clearTimeout(notifTimeout);
+        notifTimeout = null;
+      }
+
+      t.textContent = title;
+      m.textContent = message;
+
+      banner.className = "m-3 p-3.5 rounded-xl border text-xs flex items-start space-x-2.5 transition-all";
+      if (type === "warning") {
+        banner.classList.add("bg-amber-50", "dark:bg-amber-950/40", "border-amber-300", "dark:border-amber-800", "text-amber-900", "dark:text-amber-200");
+        icon.textContent = "⚠️";
+      } else if (type === "error") {
+        banner.classList.add("bg-rose-50", "dark:bg-rose-950/40", "border-rose-300", "dark:border-rose-800", "text-rose-900", "dark:text-rose-200");
+        icon.textContent = "❌";
+      } else if (type === "success") {
+        banner.classList.add("bg-emerald-50", "dark:bg-emerald-950/40", "border-emerald-300", "dark:border-emerald-800", "text-emerald-900", "dark:text-emerald-200");
+        icon.textContent = "✅";
+      } else {
+        banner.classList.add("bg-blue-50", "dark:bg-blue-950/40", "border-blue-300", "dark:border-blue-800", "text-blue-900", "dark:text-blue-200");
+        icon.textContent = "ℹ️";
+      }
+      banner.classList.remove("hidden");
+
+      // Muvaffaqiyatli yoki axborot xabarlarini 4.5 soniyadan so'ng avtomatik yopish
+      if (type === "success" || type === "info") {
+        notifTimeout = setTimeout(() => {
+          hideNotification();
+        }, 4500);
+      }
+    }
+
+    function hideNotification() {
+      const banner = document.getElementById("notification-banner");
+      if (banner) banner.classList.add("hidden");
+    }
+
+    const btnCloseNotif = document.getElementById("btn-close-notif");
+    if (btnCloseNotif) {
+      btnCloseNotif.addEventListener("click", hideNotification);
+    }
+
+    // Kalit so'z qidiruv maydoni boshqaruvi
+    inputSearch.addEventListener("input", () => {
+      if (btnClearSearch) {
+        if (inputSearch.value.trim().length > 0) {
+          btnClearSearch.classList.remove("hidden");
+        } else {
+          btnClearSearch.classList.add("hidden");
+        }
+      }
+    });
+
+    inputSearch.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        startScan();
+      }
+    });
+
+    if (btnClearSearch) {
+      btnClearSearch.addEventListener("click", () => {
+        inputSearch.value = "";
+        btnClearSearch.classList.add("hidden");
+        inputSearch.focus();
+      });
+    }
+
+    if (btnSearchTop) {
+      btnSearchTop.addEventListener("click", () => {
+        startScan();
+      });
+    }
+
+    if (btnStopTop) {
+      btnStopTop.addEventListener("click", stopScan);
+    }
+
+
+
+    // =========================================================================
+    // 3.5. VAKANSIYALAR KARTALARI VA TABLARNI BOSHQARISH (vacancy.argos.uz kabi)
+    // =========================================================================
+    function escapeHtml(text) {
+      if (!text) return "";
+      const div = document.createElement("div");
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function createVacancyCardElement(item) {
+      const card = document.createElement("div");
+      card.className = "bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xs hover:shadow-md transition-all p-4 sm:p-5 flex flex-col justify-between";
+      card.id = `vacancy-card-${item.id}`;
+
+      const argosUrl = item.argos_url || `https://vacancy.argos.uz/hrm-vacancy-detail/${item.id}`;
+      const isInternal = Boolean(item.is_internal);
+      const testName = item.test_type_name || "Test talab etilmaydi";
+      const isBoshqaruv = testName.toLowerCase().includes("boshqaruv");
+      
+      // Sevimlilar holatini tekshirish
+      let savedFavs = [];
+      try {
+        savedFavs = JSON.parse(localStorage.getItem("argos_favs") || "[]");
+      } catch (e) {
+        savedFavs = [];
+      }
+      const isFav = savedFavs.includes(item.id);
+
+      // Test turi stili: Foydalanuvchi talabi: to'q ko'k yoki qizil
+      let testTypeContainerClass = "p-2 px-3 rounded-lg border-2 border-blue-600/40 dark:border-blue-500/50 bg-blue-50/90 dark:bg-blue-950/60 shadow-xs flex items-center space-x-2.5";
+      let testTypeTextColor = "text-blue-900 dark:text-blue-200";
+      let testTypeIconColor = "text-blue-700 dark:text-blue-400";
+
+      if (isBoshqaruv) {
+        testTypeContainerClass = "p-2 px-3 rounded-lg border-2 border-blue-700/60 dark:border-blue-400/60 bg-blue-50/95 dark:bg-blue-950/80 shadow-xs flex items-center space-x-2.5 ring-1 ring-blue-500/20";
+        testTypeTextColor = "text-blue-950 dark:text-blue-100 font-black";
+        testTypeIconColor = "text-blue-800 dark:text-blue-300";
+      }
+
+      card.innerHTML = `
+        <!-- Yuqori qism: Tashkilot va Nishon -->
+        <div>
+          <div class="flex items-start justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-700/60">
+            <div>
+              <h3 class="font-bold text-slate-900 dark:text-white text-sm sm:text-base leading-snug">
+                ${escapeHtml(item.organization || "Tashkilot ko'rsatilmagan")}
+              </h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1.5">
+                <span>•</span> <span>${escapeHtml(item.structure_name || "Boshqaruv apparati")}</span>
+              </p>
+            </div>
+            <div class="flex items-center space-x-2 shrink-0">
+              <span class="px-3 py-1 text-xs font-bold rounded-lg ${isInternal ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300' : 'bg-blue-600 text-white shadow-xs shadow-blue-500/20'}">
+                ${isInternal ? 'Ichki tanlov' : 'Tashqi tanlov'}
+              </span>
+              <button type="button" class="btn-fav-star text-lg leading-none ${isFav ? 'is-favorited text-amber-500' : 'text-slate-300 dark:text-slate-600 hover:text-amber-400'}" data-id="${item.id}" title="${isFav ? 'Saqlanganlardan o‘chirish' : 'Saqlab qo‘yish (Sevimli)'}">
+                ★
+              </button>
+            </div>
+          </div>
+
+          <!-- Lavozim Nomi (Argos havolasi bilan) -->
+          <div class="mt-3.5 mb-3.5">
+            <a href="${argosUrl}" target="_blank"
+              class="text-base sm:text-lg font-black text-slate-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors inline-flex items-center gap-1.5 group">
+              <span>${escapeHtml(item.position_name || "Lavozim nomi")}</span>
+              <span class="text-xs text-blue-500 opacity-70 group-hover:opacity-100 transition-opacity">↗</span>
+            </a>
+          </div>
+
+          <!-- 2-Ustunli Parametrlar Grid (Argos standartiga 100% mos) -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2.5 text-xs text-slate-700 dark:text-slate-300">
+            <!-- Chap Ustun -->
+            <div class="space-y-2.5">
+              <div class="flex items-center space-x-2.5">
+                <span class="text-slate-400 dark:text-slate-500 text-sm">💼</span>
+                <span class="font-semibold text-slate-800 dark:text-slate-200">${escapeHtml(item.salary_display || "Shtat jadvali bo'yicha")}</span>
+              </div>
+              <div class="flex items-center space-x-2.5">
+                <span class="text-slate-400 dark:text-slate-500 text-sm">🕒</span>
+                <span class="font-semibold text-slate-800 dark:text-slate-200">${escapeHtml(item.work_type_display || "To'liq")}</span>
+              </div>
+              <div class="flex items-center space-x-2.5">
+                <span class="text-slate-400 dark:text-slate-500 text-sm">📅</span>
+                <span class="font-semibold text-slate-800 dark:text-slate-200">${escapeHtml(item.contract_display || "Nomuayyan muddatli")}</span>
+              </div>
+            </div>
+
+            <!-- O'ng Ustun -->
+            <div class="space-y-2.5">
+              <div class="flex items-center space-x-2.5">
+                <span class="text-slate-400 dark:text-slate-500 text-sm">📍</span>
+                <span class="font-semibold text-slate-800 dark:text-slate-200">${escapeHtml(item.region_display || "-")}</span>
+              </div>
+              <div class="flex items-center space-x-2.5">
+                <span class="text-slate-400 dark:text-slate-500 text-sm">🕒</span>
+                <span class="font-semibold text-slate-800 dark:text-slate-200">${escapeHtml(item.experience_display || "Mehnat staji talab etilmaydi")}</span>
+              </div>
+              
+              <!-- TEST TURI (USER TALABI BO'YICHA TO'Q KO'K VA RAMKA BILAN AJRATILGAN) -->
+              <div class="${testTypeContainerClass}">
+                <span class="${testTypeIconColor} text-sm font-bold">🕒</span>
+                <span class="${testTypeTextColor} text-xs sm:text-[13px] tracking-tight">
+                  Test turi: ${escapeHtml(testName)}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pastki qator (Sanalar, Statistika va Tezkor Harakatlar) -->
+        <div class="mt-4 pt-3.5 border-t border-slate-100 dark:border-slate-700/60 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
+          <div class="flex items-center space-x-4 font-medium">
+            <span class="flex items-center gap-1.5" title="Boshlanish sanasi">
+              <span>📅</span> <span>${escapeHtml(item.date_start_uz || "-")}</span>
+            </span>
+            <span class="flex items-center gap-1.5" title="Tugash sanasi">
+              <span>⌛</span> <span>${escapeHtml(item.date_stop_uz || "-")}</span>
+            </span>
+          </div>
+          <div class="flex items-center flex-wrap gap-2">
+            <span class="flex items-center gap-1 text-[11px]" title="Ko'rishlar soni">
+              <span>👁️</span> <span>${item.views_count || 0}</span>
+            </span>
+            <span class="flex items-center gap-1 text-[11px]" title="Nomzodlar soni">
+              <span>👥</span> <span>${item.candidates_count || 0}</span>
+            </span>
+
+            <!-- Yakka ushbu vakansiyani Word qilish tugmasi -->
+            <button type="button" class="btn-card-export-doc px-2.5 py-1.5 rounded-lg border border-blue-200 dark:border-blue-700/80 bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-600 hover:text-white dark:hover:bg-blue-600 text-blue-700 dark:text-blue-300 transition flex items-center gap-1 text-[11px] font-bold shadow-2xs cursor-pointer" data-id="${item.id}" title="Faqat shu vakansiyani Word (.docx) hujjati qilib ochish">
+              <span>📄</span>
+              <span>Word (.docx)</span>
+            </button>
+
+            <!-- Rasmiy Argos portalida ochish -->
+            <a href="${argosUrl}" target="_blank"
+              class="px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition flex items-center gap-1 text-[11px] font-bold shadow-2xs"
+              title="Rasmiy Argos portalida to'liq ko'rish">
+              <span>Argosda ochish</span>
+              <span>↗️</span>
+            </a>
+          </div>
+        </div>
+      `;
+
+      // 1. Sevimlilar (Star) tinglovchisi
+      const starBtn = card.querySelector(".btn-fav-star");
+      if (starBtn) {
+        starBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          let favs = [];
+          try {
+            favs = JSON.parse(localStorage.getItem("argos_favs") || "[]");
+          } catch(err) {
+            favs = [];
+          }
+          const idx = favs.indexOf(item.id);
+          if (idx > -1) {
+            favs.splice(idx, 1);
+            starBtn.classList.remove("is-favorited", "text-amber-500");
+            starBtn.classList.add("text-slate-300", "dark:text-slate-600");
+            starBtn.title = "Saqlab qo‘yish (Sevimli)";
+            showNotification("Saqlanganlar", "Vakansiya saqlanganlardan olib tashlandi.", "info");
+          } else {
+            favs.push(item.id);
+            starBtn.classList.add("is-favorited", "text-amber-500");
+            starBtn.classList.remove("text-slate-300", "dark:text-slate-600");
+            starBtn.title = "Saqlanganlardan o‘chirish";
+            showNotification("Saqlandi ⭐", `"${item.position_name || 'Vakansiya'}" sevimlilar ro'yxatiga saqlandi.`, "success");
+          }
+          localStorage.setItem("argos_favs", JSON.stringify(favs));
+        });
+      }
+
+      // 2. Yakka Word eksport tugmasi tinglovchisi
+      const exportBtn = card.querySelector(".btn-card-export-doc");
+      if (exportBtn) {
+        exportBtn.addEventListener("click", async (e) => {
+          e.stopPropagation();
+          exportBtn.disabled = true;
+          exportBtn.innerHTML = `<span>⏳</span><span>Yaratilmoqda...</span>`;
+          showNotification("Word yaratilmoqda", `Vakansiya #${item.id} uchun Word (.docx) hujjati tayyorlanmoqda...`, "info");
+          try {
+            const res = await fetch(`/api/export-single/${item.id}`, { method: "POST" });
+            const data = await res.json();
+            if (!res.ok || data.error) {
+              throw new Error(data.error || "Word yaratib bo'lmadi");
+            }
+            showNotification("Word tayyor! ✅", `"${data.filename}" yaratildi va ochilmoqda.`, "success");
+            loadDocumentByName(data.filename, {
+              count: "1 ta vakansiya",
+              meta: `${data.filename}`
+            });
+            tabDocxBadge.classList.remove("hidden");
+            switchWorkspaceTab("docx");
+            refreshHistoryList();
+          } catch (err) {
+            showNotification("Eksport xatosi", err.message, "error");
+          } finally {
+            exportBtn.disabled = false;
+            exportBtn.innerHTML = `<span>📄</span><span>Word (.docx)</span>`;
+          }
+        });
+      }
+
+      return card;
+    }
+
+    function switchWorkspaceTab(tab) {
+      activeWorkspaceTab = tab;
+      if (tab === "cards") {
+        tabCardsBtn.className = "flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg font-bold transition shadow-xs bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400";
+        tabDocxBtn.className = "flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg font-medium transition text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white";
+        cardsView.classList.remove("hidden");
+        docxContainer.classList.add("hidden");
+        docxToolbarTools.classList.add("hidden");
+      } else {
+        tabDocxBtn.className = "flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg font-bold transition shadow-xs bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400";
+        tabCardsBtn.className = "flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg font-medium transition text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white";
+        docxContainer.classList.remove("hidden");
+        cardsView.classList.add("hidden");
+        docxToolbarTools.classList.remove("hidden");
+        
+        if (!currentDocxBlob && currentDocxFilename) {
+          loadDocumentByName(currentDocxFilename);
+        }
+      }
+    }
+
+    if (tabCardsBtn) tabCardsBtn.addEventListener("click", () => switchWorkspaceTab("cards"));
+    if (tabDocxBtn) tabDocxBtn.addEventListener("click", () => switchWorkspaceTab("docx"));
+
+    function renderAllCards(items) {
+      currentVacancies = items || [];
+      cardsList.innerHTML = "";
+      tabCardsBadge.textContent = `${currentVacancies.length} ta`;
+
+      if (!currentVacancies || currentVacancies.length === 0) {
+        cardsEmptyState.classList.remove("hidden");
+        cardsList.classList.add("hidden");
+        return;
+      }
+
+      cardsEmptyState.classList.add("hidden");
+      cardsList.classList.remove("hidden");
+
+      currentVacancies.forEach(it => {
+        const el = createVacancyCardElement(it);
+        cardsList.appendChild(el);
+      });
+    }
+
+    function appendVacancyCard(item) {
+      currentVacancies.push(item);
+      cardsEmptyState.classList.add("hidden");
+      cardsList.classList.remove("hidden");
+      tabCardsBadge.textContent = `${currentVacancies.length} ta`;
+
+      const el = createVacancyCardElement(item);
+      cardsList.appendChild(el);
+    }
+
+    if (btnCardsOpenLatest) {
+      btnCardsOpenLatest.addEventListener("click", () => {
+        if (currentVacancies.length > 0) {
+          renderAllCards(currentVacancies);
+        } else {
+          loadLatestDocAndCards();
+        }
+      });
+    }
+
+    // =========================================================================
+    // 4. WORD HUJJATINI WEB ICHIDA KO'RSATISH (DOCX PREVIEW VA MAMMOTH)
+    // =========================================================================
+    async function renderDocxFromBlob(blob, filename, docMeta = null) {
+      currentDocxBlob = blob;
+      currentDocxFilename = filename;
+
+      // UI holatini yangilash
+      emptyState.classList.add("hidden");
+      loadingState.classList.remove("hidden");
+      loadingText.textContent = `"${filename}" sahifalari chizilmoqda...`;
+      zoomWrapper.classList.add("hidden");
+      readerWrapper.classList.add("hidden");
+
+      // Nom va meta ma'lumotlar
+      currentDocName.textContent = filename;
+      btnPrint.disabled = false;
+      btnDownload.disabled = false;
+      btnDownload.href = URL.createObjectURL(blob);
+      btnDownload.download = filename;
+
+      if (docMeta && docMeta.count) {
+        currentDocBadge.textContent = docMeta.count;
+        currentDocBadge.classList.remove("hidden");
+      } else {
+        currentDocBadge.classList.add("hidden");
+      }
+      currentDocMeta.textContent = docMeta?.meta || `Hajmi: ${Math.round(blob.size / 1024)} KB`;
+
+      try {
+        // 1. docx-preview orqali haqiqiy sahifalarni chizish
+        docxRenderTarget.innerHTML = "";
+        await docx.renderAsync(blob, docxRenderTarget, null, {
+          className: "docx",
+          inWrapper: true,
+          ignoreWidth: false,
+          ignoreHeight: false,
+          ignoreFonts: false,
+          breakPages: true,
+          ignoreLastRenderedPageBreak: false,
+          experimental: false,
+          trimXml: true,
+          useBase64URL: false
+        });
+
+        // 2. Mammoth HTML o'qish rejimini tayyorlash
+        if (filename) {
+          fetch(`/api/preview/${encodeURIComponent(filename)}`)
+            .then(r => r.json())
+            .then(data => {
+              if (data.html) {
+                mammothTarget.innerHTML = data.html;
+              }
+            })
+            .catch(e => console.warn("Mammoth HTML ololmadik:", e));
+        }
+
+        loadingState.classList.add("hidden");
+        applyViewMode();
+        resetZoom();
+
+      } catch (err) {
+        console.error("Word render qilishda xatolik:", err);
+        loadingState.classList.add("hidden");
+        showNotification("Render xatoligi", err.message, "error");
+      }
+    }
+
+    async function loadDocumentByName(filename, docMeta = null) {
+      loadingState.classList.remove("hidden");
+      emptyState.classList.add("hidden");
+      zoomWrapper.classList.add("hidden");
+      readerWrapper.classList.add("hidden");
+      loadingText.textContent = `"${filename}" yuklab olinmoqda...`;
+
+      try {
+        const res = await fetch(`/api/docx-raw/${encodeURIComponent(filename)}`);
+        if (!res.ok) throw new Error("Faylni yuklab bo'lmadi");
+        const blob = await res.blob();
+        await renderDocxFromBlob(blob, filename, docMeta);
+      } catch (err) {
+        loadingState.classList.add("hidden");
+        emptyState.classList.remove("hidden");
+        showNotification("Hujjatni yuklashda xatolik", err.message, "error");
+      }
+    }
+
+    // Kompyuterdan mahalliy docx ochish
+    localFileInput.addEventListener("change", async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      await renderDocxFromBlob(file, file.name, {
+        count: "Mahalliy fayl",
+        meta: `Hajmi: ${Math.round(file.size / 1024)} KB`
+      });
+    });
+
+    // =========================================================================
+    // 5. ZOOM VA REJIMLARNI BOSHQARISH
+    // =========================================================================
+    function setScale(scale) {
+      currentScale = Math.max(0.4, Math.min(2.0, scale));
+      docxRenderTarget.style.transform = `scale(${currentScale})`;
+      btnZoomReset.textContent = `${Math.round(currentScale * 100)}%`;
+    }
+
+    function resetZoom() {
+      setScale(1.0);
+    }
+
+    btnZoomIn.addEventListener("click", () => setScale(currentScale + 0.1));
+    btnZoomOut.addEventListener("click", () => setScale(currentScale - 0.1));
+    btnZoomReset.addEventListener("click", resetZoom);
+
+    btnFitWidth.addEventListener("click", () => {
+      const containerWidth = docxContainer.clientWidth - 50;
+      const pageEl = docxRenderTarget.querySelector("section.docx");
+      if (pageEl) {
+        const pageWidth = pageEl.offsetWidth;
+        if (pageWidth > 0) {
+          const fit = Math.min(1.4, Math.max(0.5, containerWidth / pageWidth));
+          setScale(fit);
+        }
+      }
+    });
+
+    function applyViewMode() {
+      if (currentViewMode === "page") {
+        zoomWrapper.classList.remove("hidden");
+        readerWrapper.classList.add("hidden");
+        btnModePage.classList.add("bg-white", "dark:bg-slate-800", "text-blue-600", "dark:text-blue-400", "shadow-xs");
+        btnModePage.classList.remove("text-slate-600", "dark:text-slate-300");
+        btnModeReader.classList.remove("bg-white", "dark:bg-slate-800", "text-blue-600", "dark:text-blue-400", "shadow-xs");
+        btnModeReader.classList.add("text-slate-600", "dark:text-slate-300");
+        document.getElementById("zoom-controls").classList.remove("opacity-40", "pointer-events-none");
+      } else {
+        zoomWrapper.classList.add("hidden");
+        readerWrapper.classList.remove("hidden");
+        btnModeReader.classList.add("bg-white", "dark:bg-slate-800", "text-blue-600", "dark:text-blue-400", "shadow-xs");
+        btnModeReader.classList.remove("text-slate-600", "dark:text-slate-300");
+        btnModePage.classList.remove("bg-white", "dark:bg-slate-800", "text-blue-600", "dark:text-blue-400", "shadow-xs");
+        btnModePage.classList.add("text-slate-600", "dark:text-slate-300");
+        document.getElementById("zoom-controls").classList.add("opacity-40", "pointer-events-none");
+      }
+    }
+
+    btnModePage.addEventListener("click", () => {
+      currentViewMode = "page";
+      applyViewMode();
+    });
+
+    btnModeReader.addEventListener("click", () => {
+      currentViewMode = "reader";
+      applyViewMode();
+    });
+
+    btnPrint.addEventListener("click", () => {
+      window.print();
+    });
+
+    // To'liq ekran (Fullscreen) boshqaruvi
+    const btnFullscreen = document.getElementById("btn-fullscreen");
+    const btnFullscreenIcon = document.getElementById("btn-fullscreen-icon");
+    const btnFullscreenText = document.getElementById("btn-fullscreen-text");
+    const mainWorkspaceSection = docxContainer ? docxContainer.closest("section") : null;
+
+    if (btnFullscreen && mainWorkspaceSection) {
+      btnFullscreen.addEventListener("click", () => {
+        const isFs = mainWorkspaceSection.classList.toggle("workspace-fullscreen");
+        if (isFs) {
+          btnFullscreenIcon.textContent = "✕";
+          if (btnFullscreenText) btnFullscreenText.textContent = "Chiqish";
+          btnFullscreen.classList.add("bg-blue-600", "text-white", "hover:bg-blue-700");
+          setTimeout(() => {
+            if (btnFitWidth) btnFitWidth.click();
+          }, 150);
+        } else {
+          btnFullscreenIcon.textContent = "⛶";
+          if (btnFullscreenText) btnFullscreenText.textContent = "To'liq ekran";
+          btnFullscreen.classList.remove("bg-blue-600", "text-white", "hover:bg-blue-700");
+          resetZoom();
+        }
+      });
+    }
+
+    // Mobil menyu drawer boshqaruvi
+    const btnMobileNavToggle = document.getElementById("btn-mobile-nav-toggle");
+    const mobileNavDrawer = document.getElementById("mobile-nav-drawer");
+    if (btnMobileNavToggle && mobileNavDrawer) {
+      btnMobileNavToggle.addEventListener("click", () => {
+        mobileNavDrawer.classList.toggle("hidden");
+      });
+    }
+
+
+    // =========================================================================
+    // 6. SKANERLASH VA JONLI STREAM (SSE)
+    // =========================================================================
+    async function startScan() {
+      if (scanController) {
+        try { scanController.abort(); } catch(e) {}
+      }
+
+      const payload = {
+        region: filterRegion.value || null,
+        district: filterDistrict.value || null,
+        organizationId: filterOrg.value || null,
+        direction: filterDirection.value || null,
+        vacancyType: filterChoice.value !== "" ? filterChoice.value : null,
+        test_type: (filterTestType && filterTestType.value !== "") ? filterTestType.value : "Barchasi",
+        vacancyLevel: filterDegree.value || null,
+        workExperience: filterExp.value !== "" ? filterExp.value : null,
+        minSalary: filterSalary.value || null,
+        isDisablity: filterDisability.checked ? true : null,
+        search: inputSearch.value.trim() || null,
+        limit: null
+      };
+
+      if (btnSearchTop) {
+        btnSearchTop.disabled = true;
+        btnSearchTop.classList.add("opacity-60", "cursor-not-allowed");
+        if (btnSearchTopIcon) btnSearchTopIcon.textContent = "⏳";
+        if (btnSearchTopText) btnSearchTopText.textContent = "Skanerlanmoqda...";
+      }
+      if (btnStopTop) {
+        btnStopTop.disabled = false;
+      }
+      hideNotification();
+
+      progressCard.classList.remove("hidden");
+      progressBar.style.width = "0%";
+      progressPercent.textContent = "0%";
+      progressStatusTitle.textContent = "Serverga so'rov yuborilmoqda...";
+
+      // Kartalarni tozalash va Vakansiyalar kartalari tabiga o'tish
+      currentVacancies = [];
+      cardsList.innerHTML = "";
+      cardsEmptyState.classList.add("hidden");
+      cardsList.classList.remove("hidden");
+      tabCardsBadge.textContent = "0 ta";
+      tabDocxBadge.classList.add("hidden");
+      switchWorkspaceTab("cards");
+
+      if (liveFoundContainer) liveFoundContainer.classList.remove("hidden");
+      if (liveFoundCount) liveFoundCount.textContent = "0 ta";
+      let foundItemsCount = 0;
+
+      try {
+        scanController = new AbortController();
+        const response = await fetch("/api/scan", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+          signal: scanController.signal
+        });
+
+        if (!response.ok) {
+          throw new Error("Skanerlash serverida xatolik: " + response.statusText);
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder("utf-8");
+        let buffer = "";
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n\n");
+          buffer = lines.pop();
+
+          for (const chunk of lines) {
+            const trimmed = chunk.trim();
+            if (!trimmed.startsWith("data:")) continue;
+
+            const jsonStr = trimmed.replace(/^data:\s*/, "");
+            try {
+              const evt = JSON.parse(jsonStr);
+              handleScanEvent(evt);
+            } catch (e) {
+              console.warn("JSON parse xatosi:", e, jsonStr);
+            }
+          }
+        }
+
+      } catch (err) {
+        if (err.name !== "AbortError") {
+          progressStatusTitle.textContent = "Xatolik: " + err.message;
+          showNotification("Skanerlash xatoligi", err.message, "error");
+        }
+      } finally {
+        resetScanButtons();
+        refreshHistoryList();
+      }
+
+      function handleScanEvent(evt) {
+        if (evt.type === "status") {
+          progressStatusTitle.textContent = evt.message;
+          if (evt.tot && evt.tot > 0) {
+            const pct = Math.min(100, Math.round((evt.cur / evt.tot) * 100));
+            progressBar.style.width = `${pct}%`;
+            progressPercent.textContent = `${pct}%`;
+          }
+        } else if (evt.type === "found") {
+          foundItemsCount++;
+          if (liveFoundCount) liveFoundCount.textContent = `${foundItemsCount} ta`;
+
+          // Asosiy ekranga vakansiya kartasini chiqarish
+          if (evt.card) {
+            appendVacancyCard(evt.card);
+          } else {
+            appendVacancyCard({
+              id: evt.id,
+              position_name: evt.position,
+              organization: evt.organization,
+              structure_name: "Boshqaruv apparati",
+              region_display: `${evt.region || ''}, ${evt.district || ''}`,
+              salary_display: "Shtat jadvali bo'yicha",
+              work_type_display: "To'liq",
+              contract_display: "Nomuayyan muddatli",
+              experience_display: "Mehnat staji talab etilmaydi",
+              test_type_name: evt.test_type,
+              date_start_uz: "-",
+              date_stop_uz: "-",
+              views_count: 0,
+              likes_count: 0,
+              candidates_count: 0,
+              is_internal: false,
+              argos_url: `https://vacancy.argos.uz/hrm-vacancy-detail/${evt.id}`
+            });
+          }
+
+          if (evt.tot && evt.tot > 0) {
+            const pct = Math.min(100, Math.round((evt.cur / evt.tot) * 100));
+            progressBar.style.width = `${pct}%`;
+            progressPercent.textContent = `${pct}%`;
+          }
+        } else if (evt.type === "done") {
+          progressBar.style.width = "100%";
+          progressPercent.textContent = "100%";
+          progressStatusTitle.textContent = `Tayyor! ${evt.message}`;
+          setTimeout(() => {
+            progressCard.classList.add("hidden");
+          }, 3500);
+          hideNotification();
+
+          tabDocxBadge.classList.remove("hidden");
+          tabCardsBadge.textContent = `${evt.count} ta`;
+
+          if (evt.vacancies && evt.vacancies.length > 0) {
+            renderAllCards(evt.vacancies);
+          }
+
+          // Word fayli parametrlari
+          currentDocName.textContent = evt.filename;
+          currentDocFilename = evt.filename;
+          btnDownload.disabled = false;
+          btnDownload.href = evt.docx_url;
+          btnDownload.download = evt.filename;
+          btnPrint.disabled = false;
+
+          loadDocumentByName(evt.filename, {
+            count: `${evt.count} ta vakansiya`,
+            meta: `Yangi yaratildi (${evt.filename})`
+          });
+        } else if (evt.type === "done_empty") {
+          progressStatusTitle.textContent = evt.message;
+          cardsEmptyState.classList.remove("hidden");
+          cardsList.classList.add("hidden");
+          tabCardsBadge.textContent = "0 ta";
+          showNotification(
+            "Mos vakansiyalar topilmadi",
+            "Belgilangan shartlarga mos vakansiyalar topilmadi. Filtr parametrlarini o'zgartirib ko'ring.",
+            "warning"
+          );
+        } else if (evt.type === "error") {
+          progressStatusTitle.textContent = "Xatolik: " + evt.message;
+          showNotification("Xatolik yuz berdi", evt.message, "error");
+        }
+      }
+    }
+
+    async function stopScan() {
+      try {
+        await fetch("/api/stop", { method: "POST" });
+        if (scanController) scanController.abort();
+        progressStatusTitle.textContent = "Jarayon to'xtatildi.";
+      } catch (e) {
+        console.error("To'xtatishda xatolik:", e);
+      } finally {
+        resetScanButtons();
+      }
+    }
+
+    function resetScanButtons() {
+      if (btnSearchTop) {
+        btnSearchTop.disabled = false;
+        btnSearchTop.classList.remove("opacity-60", "cursor-not-allowed");
+        if (btnSearchTopIcon) btnSearchTopIcon.textContent = "🚀";
+        if (btnSearchTopText) btnSearchTopText.textContent = "Skanerlash";
+      }
+      if (btnStopTop) {
+        btnStopTop.disabled = true;
+      }
+    }
+
+    // =========================================================================
+    // 7. HUJJATLAR TARIXI VA BOSHQARUV
+    // =========================================================================
+    async function refreshHistoryList() {
+      try {
+        const res = await fetch("/api/history");
+        const items = await res.json();
+        historyBadge.textContent = items.length;
+
+        historyList.innerHTML = "";
+        if (items.length === 0) {
+          historyList.innerHTML = `
+            <div class="text-center py-10 text-slate-400 text-sm">
+              Hozircha hech qanday Word hujjati saqlanmagan.
+            </div>
+          `;
+          return items;
+        }
+
+        items.forEach(item => {
+          const card = document.createElement("div");
+          card.className = "p-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/60 hover:border-blue-500 transition space-y-2";
+          card.innerHTML = `
+            <div class="flex items-start justify-between">
+              <div>
+                <h4 class="text-xs font-bold text-slate-800 dark:text-slate-200 break-all">${item.filename}</h4>
+                <div class="flex items-center space-x-2 text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                  <span>📅 ${item.date}</span>
+                  <span>•</span>
+                  <span>📦 ${item.size}</span>
+                </div>
+              </div>
+              <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-300 shrink-0">
+                ${item.count}
+              </span>
+            </div>
+            <div class="flex items-center justify-end space-x-2 pt-1 border-t border-slate-200/60 dark:border-slate-700/60">
+              <button type="button" class="btn-history-view px-3 py-1 text-xs font-bold rounded bg-blue-600 hover:bg-blue-700 text-white transition cursor-pointer" data-name="${item.filename}" data-count="${item.count}" data-meta="${item.date} • ${item.size}">
+                👁️ Vebda ko'rish
+              </button>
+              <a href="${item.download_url}" download class="px-2.5 py-1 text-xs font-medium rounded border border-slate-300 dark:border-slate-600 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition">
+                📥 Yuklab olish
+              </a>
+              <button type="button" class="btn-history-delete p-1 px-2.5 text-xs font-semibold rounded border border-rose-200 dark:border-rose-800/80 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 transition cursor-pointer" data-name="${item.filename}" title="Faylni o'chirish">
+                🗑️
+              </button>
+            </div>
+          `;
+          historyList.appendChild(card);
+        });
+
+        // "Vebda ko'rish" tugmalari
+        historyList.querySelectorAll(".btn-history-view").forEach(btn => {
+          btn.addEventListener("click", async () => {
+            const fname = btn.dataset.name;
+            const fcount = btn.dataset.count;
+            const fmeta = btn.dataset.meta;
+            historyModal.classList.add("hidden");
+            
+            // 1. Wordni tayyorlash
+            loadDocumentByName(fname, { count: fcount, meta: fmeta });
+            tabDocxBadge.classList.remove("hidden");
+
+            // 2. Ushbu hujjat kartalarini yuklashga urinish
+            try {
+              const r = await fetch(`/api/vacancies-by-doc/${encodeURIComponent(fname)}`);
+              if (r.ok) {
+                const cData = await r.json();
+                if (cData && cData.length > 0) {
+                  renderAllCards(cData);
+                  switchWorkspaceTab("cards");
+                  return;
+                }
+              }
+            } catch (e) {
+              console.warn("Kartalarni yuklab bo'lmadi:", e);
+            }
+            switchWorkspaceTab("docx");
+          });
+        });
+
+        // "O'chirish" (Delete) tugmalari
+        historyList.querySelectorAll(".btn-history-delete").forEach(btn => {
+          btn.addEventListener("click", async () => {
+            const fname = btn.dataset.name;
+            if (!confirm(`Haqiqatan ham "${fname}" faylini o'chirmoqchimisiz?`)) return;
+            try {
+              const res = await fetch(`/api/history/${encodeURIComponent(fname)}`, { method: "DELETE" });
+              const resData = await res.json();
+              if (res.ok) {
+                showNotification("O'chirildi 🗑️", `"${fname}" muvaffaqiyatli o'chirildi.`, "success");
+                refreshHistoryList();
+                if (currentDocxFilename === fname) {
+                  currentDocxBlob = null;
+                  currentDocxFilename = null;
+                  currentDocName.textContent = "Hujjat tanlanmagan";
+                  tabDocxBadge.classList.add("hidden");
+                  emptyState.classList.remove("hidden");
+                  zoomWrapper.classList.add("hidden");
+                  readerWrapper.classList.add("hidden");
+                }
+              } else {
+                throw new Error(resData.error || "O'chirishda xatolik yuz berdi");
+              }
+            } catch (err) {
+              showNotification("Xatolik", err.message, "error");
+            }
+          });
+        });
+
+        return items;
+      } catch (err) {
+        console.error("Tarixni olishda xatolik:", err);
+        return [];
+      }
+    }
+
+    btnHistoryToggle.addEventListener("click", () => {
+      historyModal.classList.remove("hidden");
+      refreshHistoryList();
+    });
+
+    btnCloseHistory.addEventListener("click", () => {
+      historyModal.classList.add("hidden");
+    });
+
+    btnRefreshHistory.addEventListener("click", refreshHistoryList);
+
+    historyModal.addEventListener("click", (e) => {
+      if (e.target === historyModal) {
+        historyModal.classList.add("hidden");
+      }
+    });
+
+    async function loadLatestDocAndCards() {
+      const items = await refreshHistoryList();
+      if (items && items.length > 0) {
+        const latest = items[0];
+        loadDocumentByName(latest.filename, { count: latest.count, meta: `${latest.date} • ${latest.size}` });
+        tabDocxBadge.classList.remove("hidden");
+
+        try {
+          const r = await fetch(`/api/vacancies-by-doc/${encodeURIComponent(latest.filename)}`);
+          if (r.ok) {
+            const cData = await r.json();
+            if (cData && cData.length > 0) {
+              renderAllCards(cData);
+              switchWorkspaceTab("cards");
+              return;
+            }
+          }
+        } catch (e) {
+          console.warn("Kartalar topilmadi:", e);
+        }
+        switchWorkspaceTab("docx");
+      } else {
+        showNotification("Hujjat yo'q", "Avval bitta skanerlashni amalga oshiring, Word hujjati avtomatik yaratiladi.", "info");
+      }
+    }
+
+    // =========================================================================
+    // 8. BOSHLANG'ICH YUKLANISH
+    // =========================================================================
+    document.addEventListener("DOMContentLoaded", () => {
+      initTheme();
+      loadRegions();
+      loadOrganizations();
+      refreshHistoryList();
+
+      // Muhitni aniqlash (Lokal yoki Firebase Hosting / Cloud)
+      const badge = document.getElementById("server-status-badge");
+      if (badge) {
+        if (window.location.hostname.includes("web.app") || window.location.hostname.includes("firebaseapp.com")) {
+          badge.textContent = "argostest.web.app (Online)";
+          badge.className = "px-2 py-0.5 text-[11px] font-bold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300 border border-blue-300 dark:border-blue-700";
+        } else if (window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost") {
+          badge.textContent = "Lokal Server (127.0.0.1:5000)";
+        } else {
+          badge.textContent = window.location.hostname;
+        }
+      }
+    });
+  </script>
+</body>
+</html>
