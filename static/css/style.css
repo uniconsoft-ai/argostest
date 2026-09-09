@@ -31,6 +31,14 @@ body {
   min-height: 100vh;
 }
 
+/* Mustaqillik Banneri (vacancy.argos.uz kabi) */
+.independence-badge {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
 /* Select Options Styling (Dark & Light) */
 select option {
   background-color: #ffffff;

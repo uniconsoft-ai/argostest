@@ -1100,6 +1100,12 @@ def favicon():
     return send_from_directory(os.path.join(BASE_DIR, "static", "img"), "emblem.svg", mimetype="image/svg+xml")
 
 
+@app.route("/assets/images/<path:filename>")
+def assets_images(filename):
+    """Argos statik rasmlari (masalan, independent.png)"""
+    return send_from_directory(os.path.join(BASE_DIR, "static", "assets", "images"), filename)
+
+
 @app.route("/api/regions")
 def get_regions():
     """Viloyatlar ro'yxati"""
