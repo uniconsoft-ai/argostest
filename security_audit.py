@@ -83,7 +83,18 @@ class ArgosSecurityHardeningAudit(unittest.TestCase):
 
         r403 = self.client.delete('/api/history/sample.docx')
         self.assertEqual(r403.status_code, 403)
-        self.assertEqual(r403.get_json().get('status'), 'error')
+        d403 = r403.get_json()
+        self.assertEqual(d403.get('status'), 'error')
+
+    def test_frontend_f12_ctrl_u_right_click_protection(self):
+        """Frontend da F12, Ctrl+U va Right-Click bloklanganligini tekshirish"""
+        res = self.client.get('/')
+        self.assertEqual(res.status_code, 200)
+        html = res.data.decode('utf-8')
+        self.assertIn('contextmenu', html)
+        self.assertIn('F12', html)
+        self.assertIn('Ctrl+U', html)
+        self.assertIn('argos-security-toast', html)
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

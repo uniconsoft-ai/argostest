@@ -2992,37 +2992,80 @@
         );
       } catch (e) {}
 
-      // 2. Fail-Safe Shortcut Deterrence (View-Source & DevTools Shortcut Interception)
-      // Form elementlari (input, textarea, select) va standart matn yozish doim 100% ishlaydi
-      window.addEventListener("keydown", function(e) {
-        const target = e.target;
-        const isInput = target && (
-          target.tagName === "INPUT" ||
-          target.tagName === "TEXTAREA" ||
-          target.tagName === "SELECT" ||
-          target.isContentEditable
-        );
+      // 2. Xavfsizlik Toast Xabarnomasi (F12, Ctrl+U, Right-Click bosilganda bildirish)
+      let noticeTimeout = null;
+      let lastNoticeTime = 0;
+      function showSecurityNotice(msg) {
+        const now = Date.now();
+        if (now - lastNoticeTime < 1200) return;
+        lastNoticeTime = now;
 
-        if (!isInput) {
-          // F12
-          if (e.key === "F12" || e.keyCode === 123) {
-            e.preventDefault();
-            return false;
-          }
-          // Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C
-          if (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "i" || e.key === "J" || e.key === "j" || e.key === "C" || e.key === "c")) {
-            e.preventDefault();
-            return false;
-          }
-          // Ctrl+U (View Source), Ctrl+S (Save Page)
-          if (e.ctrlKey && !e.shiftKey && (e.key === "u" || e.key === "U" || e.key === "s" || e.key === "S")) {
-            e.preventDefault();
-            return false;
-          }
+        let el = document.getElementById("argos-security-toast");
+        if (!el) {
+          el = document.createElement("div");
+          el.id = "argos-security-toast";
+          el.className = "fixed bottom-16 sm:bottom-20 left-1/2 -translate-x-1/2 z-[9999] px-4 py-2 bg-slate-900/95 dark:bg-black/95 text-white text-xs sm:text-sm font-medium rounded-xl shadow-2xl backdrop-blur-md border border-red-500/50 flex items-center gap-2.5 transition-all duration-300 pointer-events-none opacity-0 translate-y-2";
+          document.body.appendChild(el);
         }
-      }, { passive: false });
+        el.innerHTML = '<span class="text-base leading-none">🛡️</span><span>' + msg + '</span>';
+        el.classList.remove("opacity-0", "translate-y-2");
+        el.classList.add("opacity-100", "translate-y-0");
 
-      // 3. Subtle Non-Intrusive Security Logger (Zero loops, zero freezing)
+        if (noticeTimeout) clearTimeout(noticeTimeout);
+        noticeTimeout = setTimeout(function() {
+          el.classList.remove("opacity-100", "translate-y-0");
+          el.classList.add("opacity-0", "translate-y-2");
+        }, 2000);
+      }
+
+      // 3. F12, Ctrl+U, DevTools va View-Source ni qat'iy bloklash
+      window.addEventListener("keydown", function(e) {
+        // F12 tugmasi
+        if (e.key === "F12" || e.keyCode === 123) {
+          e.preventDefault();
+          e.stopPropagation();
+          showSecurityNotice("Xavfsizlik: F12 (Dasturchi vositalari) cheklangan.");
+          return false;
+        }
+
+        // Ctrl+U / Cmd+U (View Source)
+        if ((e.ctrlKey || e.metaKey) && (e.key === "u" || e.key === "U" || e.keyCode === 85)) {
+          e.preventDefault();
+          e.stopPropagation();
+          showSecurityNotice("Xavfsizlik: Ctrl+U (Sahifa kodini ko'rish) cheklangan.");
+          return false;
+        }
+
+        // Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C (DevTools inspect)
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && (
+          e.key === "I" || e.key === "i" || e.keyCode === 73 ||
+          e.key === "J" || e.key === "j" || e.keyCode === 74 ||
+          e.key === "C" || e.key === "c" || e.keyCode === 67
+        )) {
+          e.preventDefault();
+          e.stopPropagation();
+          showSecurityNotice("Xavfsizlik: Inspector va DevTools cheklangan.");
+          return false;
+        }
+
+        // Ctrl+S / Cmd+S (Save Page)
+        if ((e.ctrlKey || e.metaKey) && !e.shiftKey && (e.key === "s" || e.key === "S" || e.keyCode === 83)) {
+          e.preventDefault();
+          e.stopPropagation();
+          showSecurityNotice("Xavfsizlik: Sahifani nusxalab saqlash cheklangan.");
+          return false;
+        }
+      }, { capture: true, passive: false });
+
+      // 4. Right-Click (Kontekst menyu) ni qat'iy bloklash
+      document.addEventListener("contextmenu", function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        showSecurityNotice("Xavfsizlik: Sichqonchaning o'ng tugmasi (Right-click) cheklangan.");
+        return false;
+      }, { capture: true, passive: false });
+
+      // 5. Subtle Non-Intrusive Security Logger (Zero loops, zero freezing)
       let devtoolsOpen = false;
       const element = new Image();
       Object.defineProperty(element, "id", {
