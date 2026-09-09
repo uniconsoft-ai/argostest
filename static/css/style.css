@@ -16,15 +16,19 @@
   --doc-bg: #e2e8f0;
 }
 
-.dark {
+body.dark,
+html.dark,
+html.dark body {
   --primary: #a2ade8;
   --primary-hover: #bcc3ef;
-  --bg-main: #0f172a;
-  --bg-card: #131b4b;
-  --border-color: rgba(162, 173, 232, 0.3);
+  --bg-main: linear-gradient(108.59deg, #131b4b 13%, #121e64 52.1%);
+  --bg-card: linear-gradient(98.89deg, #32419b -13.21%, #32419b00 94.15%);
+  --border-color: #a2ade8;
   --text-main: #ffffff;
   --text-muted: #a9b3d6;
   --doc-bg: #0b1120;
+  background: linear-gradient(108.59deg, #131b4b 13%, #121e64 52.1%) !important;
+  color: #ffffff !important;
 }
 
 /* vacancy.argos.uz: barcha elementlarda Source Sans Pro ishlatiladi */
@@ -33,10 +37,11 @@
 }
 
 body {
-  background-color: var(--bg-main);
+  background: #f3f5fb;
   color: var(--text-main);
   min-height: 100vh;
   line-height: 1.5;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 /* Mustaqillik Banneri (vacancy.argos.uz kabi) */
@@ -93,9 +98,10 @@ select option {
   background-color: #ffffff;
   color: #1e293b;
 }
+body.dark select option,
 .dark select option {
-  background-color: #0f172a;
-  color: #f1f5f9;
+  background-color: #051257 !important;
+  color: #ffffff !important;
 }
 
 /* Sevimlilar Yulduzchasi */
@@ -300,17 +306,20 @@ select option {
   background: #ef4444;
   border: 2px solid #fff;
 }
+body.dark .header-icon-btn,
 .dark .header-icon-btn {
   background: rgba(162, 173, 232, 0.14) !important;
   border: 1.35px solid #a2ade8 !important;
   color: #dfe6f4 !important;
 }
+body.dark .header-icon-btn:hover,
 .dark .header-icon-btn:hover {
   background: rgba(162, 173, 232, 0.24) !important;
-  box-shadow: 0 4px 10px rgba(162, 173, 232, 0.25);
+  box-shadow: 0 4px 10px rgba(162, 173, 232, 0.25) !important;
 }
+body.dark .header-icon-btn__dot,
 .dark .header-icon-btn__dot {
-  border-color: #0f172a;
+  border-color: #131b4b !important;
 }
 
 /* Savollar Dropdown Uslublari */
@@ -549,11 +558,12 @@ html {
   max-height: none !important;
 }
 
+body.dark .argos-aside,
 .dark .argos-aside {
-  background: linear-gradient(98.89deg, #131b4b -13.21%, #121e64 94.15%) !important;
-  border: 1.35px solid #a2ade8;
+  background: linear-gradient(98.89deg, #32419b -13.21%, #32419b00 94.15%) !important;
+  border: 1.35px solid #a2ade8 !important;
   color: #fff !important;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3) !important;
 }
 
 .argos-aside__item {
@@ -577,6 +587,7 @@ html {
   transition: color 0.2s ease;
 }
 
+body.dark .argos-aside__label,
 .dark .argos-aside__label {
   color: #ffffff !important;
 }
@@ -605,15 +616,17 @@ html {
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
+body.dark .argos-select,
 .dark .argos-select {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1.2px solid rgba(162, 173, 232, 0.35);
-  color: #ffffff;
+  background-color: #051257 !important;
+  border: 1.35px solid #a2ade8 !important;
+  color: #ffffff !important;
 }
 
+body.dark .argos-select option,
 .dark .argos-select option {
-  background-color: #131b4b;
-  color: #ffffff;
+  background-color: #051257 !important;
+  color: #ffffff !important;
 }
 
 .argos-select:hover:not(:disabled) {
@@ -734,10 +747,11 @@ html {
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
-.dark .argos-btn-reset {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(162, 173, 232, 0.3);
-  color: #a2ade8;
+.dark .argos-btn-reset,
+body.dark .argos-btn-reset {
+  background: rgba(162, 173, 232, 0.12) !important;
+  border: 1.35px solid #a2ade8 !important;
+  color: #dfe6f4 !important;
 }
 
 .argos-btn-reset:hover {
@@ -748,13 +762,189 @@ html {
   box-shadow: 0 3px 8px rgba(220, 38, 38, 0.12);
 }
 
-.dark .argos-btn-reset:hover {
-  color: #f87171;
-  border-color: #f87171;
-  background: rgba(220, 38, 38, 0.15);
+.dark .argos-btn-reset:hover,
+body.dark .argos-btn-reset:hover {
+  color: #f87171 !important;
+  border-color: #f87171 !important;
+  background: rgba(220, 38, 38, 0.25) !important;
 }
 
 .argos-btn-reset:active {
   transform: translateY(0);
+}
+
+/* ==========================================================================
+   ARGOS VAKANSIYA KARTALARI (LIGHT & DARK MODE)
+   https://vacancy.argos.uz/hrm-vacancy-list 100% bir xil uslub
+   ========================================================================== */
+.vacancy-card,
+.vac-card {
+  background: #ffffff;
+  border: 1px solid #dfe6f4;
+  border-radius: 12px;
+  transition: all 0.25s ease;
+}
+
+.vacancy-card:hover,
+.vac-card:hover {
+  border-color: #3165cb;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.07);
+}
+
+body.dark .vacancy-card,
+body.dark .vac-card,
+.dark .vacancy-card,
+.dark .vac-card {
+  background: linear-gradient(98.89deg, #32419b -13.21%, #32419b00 94.15%) !important;
+  border: 1.35px solid #a2ade8 !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+body.dark .vacancy-card:hover,
+body.dark .vac-card:hover,
+.dark .vacancy-card:hover,
+.dark .vac-card:hover {
+  border-color: #cfd6f3 !important;
+  box-shadow: 0 8px 24px rgba(162, 173, 232, 0.25) !important;
+}
+
+/* Sarlavhalar va matnlar ranglari (Dark Mode) */
+body.dark .vac-card-org,
+.dark .vac-card-org {
+  color: #a2ade8 !important;
+}
+
+body.dark .vac-card-pos,
+.dark .vac-card-pos {
+  color: #ffffff !important;
+}
+
+body.dark .vac-card-pos:hover,
+.dark .vac-card-pos:hover {
+  color: #cfd6f3 !important;
+}
+
+body.dark .vac-card-info,
+.dark .vac-card-info {
+  color: #ffffff !important;
+}
+
+body.dark .vac-card-meta,
+.dark .vac-card-meta {
+  color: #a9b3d6 !important;
+}
+
+/* Test turi bloki (Dark Mode) */
+body.dark .vac-test-box,
+.dark .vac-test-box {
+  background: #051257 !important;
+  border: 1.35px solid #a2ade8 !important;
+  color: #cfd6f3 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+body.dark .vac-test-box span,
+body.dark .vac-test-box svg,
+.dark .vac-test-box span,
+.dark .vac-test-box svg {
+  color: #cfd6f3 !important;
+}
+
+/* Qidiruv maydoni (Dark Mode) */
+body.dark #input-search,
+.dark #input-search {
+  background: #051257 !important;
+  border: 1.35px solid #a2ade8 !important;
+  color: #ffffff !important;
+}
+
+body.dark #input-search::placeholder,
+.dark #input-search::placeholder {
+  color: #a9b3d6 !important;
+}
+
+body.dark #input-search:focus,
+.dark #input-search:focus {
+  border-color: #cfd6f3 !important;
+  box-shadow: 0 0 0 3px rgba(162, 173, 232, 0.3) !important;
+}
+
+/* O'ng Workspace Seksiyasi (Dark Mode) */
+body.dark #workspace-section,
+.dark #workspace-section {
+  background: transparent !important;
+  border: 1.35px solid #a2ade8 !important;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3) !important;
+}
+
+body.dark .workspace-toolbar,
+.dark .workspace-toolbar {
+  background: rgba(5, 18, 87, 0.75) !important;
+  border-bottom: 1px solid rgba(162, 173, 232, 0.25) !important;
+}
+
+body.dark #cards-skeleton > div,
+.dark #cards-skeleton > div {
+  background: linear-gradient(98.89deg, #32419b -13.21%, #32419b00 94.15%) !important;
+  border: 1.35px solid rgba(162, 173, 232, 0.4) !important;
+}
+
+body.dark #cards-empty-state,
+.dark #cards-empty-state {
+  background: linear-gradient(98.89deg, #32419b -13.21%, #32419b00 94.15%) !important;
+  border: 1.35px solid #a2ade8 !important;
+  color: #ffffff !important;
+}
+
+/* Header (Dark Mode) */
+body.dark header,
+.dark header {
+  background: linear-gradient(108.59deg, #131b4b 13%, #121e64 52.1%) !important;
+  border-bottom: 1px solid rgba(162, 173, 232, 0.25) !important;
+}
+
+body.dark .breadcrumb-bar,
+.dark .breadcrumb-bar {
+  background: #131b4b !important;
+  border-bottom: 1px solid rgba(162, 173, 232, 0.2) !important;
+}
+
+/* Word tarixi & Fayl ochish (Dark Mode) */
+body.dark #btn-history-toggle,
+.dark #btn-history-toggle,
+body.dark label[for="local-file-input"],
+.dark label[for="local-file-input"] {
+  background-color: rgba(162, 173, 232, 0.14) !important;
+  border: 1.35px solid #a2ade8 !important;
+  color: #dfe6f4 !important;
+}
+
+body.dark #btn-history-toggle:hover,
+.dark #btn-history-toggle:hover,
+body.dark label[for="local-file-input"]:hover,
+.dark label[for="local-file-input"]:hover {
+  background-color: rgba(162, 173, 232, 0.24) !important;
+}
+
+/* Tarix Modal & Drawer (Dark Mode) */
+body.dark #history-modal > div,
+.dark #history-modal > div {
+  background: #131b4b !important;
+  border-left: 1.35px solid #a2ade8 !important;
+  color: #ffffff !important;
+}
+
+body.dark .history-item,
+.dark .history-item {
+  background: #051257 !important;
+  border: 1.35px solid rgba(162, 173, 232, 0.35) !important;
+  color: #ffffff !important;
+}
+
+body.dark .history-item:hover,
+.dark .history-item:hover {
+  border-color: #a2ade8 !important;
+  box-shadow: 0 4px 12px rgba(162, 173, 232, 0.2) !important;
 }
 
