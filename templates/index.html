@@ -491,19 +491,13 @@
           </label>
         </div>
 
-        <!-- 10. Filtrni qo'llash va tozalash -->
-        <div class="pt-2 space-y-2 border-t border-slate-200/60 dark:border-slate-700/60">
-          <button type="button" id="btn-apply-filters" 
-            class="w-full py-2.5 px-4 text-xs sm:text-sm font-bold rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white shadow-xs shadow-blue-500/20 transition flex items-center justify-center gap-2 cursor-pointer">
-            <span>🔍</span>
-            <span>Filtrni qo'llash</span>
+        <!-- 10. Filtrni tozalash -->
+        <div class="pt-2 border-t border-slate-200/60 dark:border-slate-700/60">
+          <button type="button" id="btn-clear-all-filters" 
+            class="w-full py-2.5 px-3 text-xs font-semibold rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 hover:border-rose-300 dark:hover:border-rose-800 transition cursor-pointer flex items-center justify-center gap-1.5 shadow-2xs">
+            <span>🔄</span>
+            <span>Filtrni tozalash</span>
           </button>
-          <div class="text-center">
-            <button type="button" id="btn-clear-all-filters" 
-              class="text-xs text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition cursor-pointer font-medium">
-              Filtrni tozalash
-            </button>
-          </div>
         </div>
 
       </div>
@@ -909,7 +903,6 @@
     const mobileFilterBadge = document.getElementById("mobile-filter-badge");
     const mobileFilterBtnText = document.getElementById("mobile-filter-btn-text");
     const mobileFilterChevron = document.getElementById("mobile-filter-chevron");
-    const btnApplyFilters = document.getElementById("btn-apply-filters");
     const btnQuickSearch = document.getElementById("btn-quick-search");
     const cardsSkeleton = document.getElementById("cards-skeleton");
     const cardsPagination = document.getElementById("cards-pagination");
@@ -1026,12 +1019,18 @@
       }
     }
 
+    function onLiveFilterChange() {
+      loadVacanciesPage(0, false);
+      switchWorkspaceTab("cards");
+    }
+
     filterRegion.addEventListener("change", async () => {
       const val = filterRegion.value;
       filterDistrict.innerHTML = '<option value="" disabled selected hidden>Tuman/shaharni tanlang</option><option value="">Barchasi</option>';
       if (!val) {
         filterDistrict.disabled = true;
-        loadOrganizations();
+        await loadOrganizations();
+        onLiveFilterChange();
         return;
       }
 
@@ -1048,17 +1047,29 @@
       } catch (err) {
         console.error("Tumanlarni yuklashda xatolik:", err);
       }
-      loadOrganizations(val, null);
+      await loadOrganizations(val, null);
+      onLiveFilterChange();
     });
 
-    filterDistrict.addEventListener("change", () => {
-      loadOrganizations(filterRegion.value, filterDistrict.value);
+    filterDistrict.addEventListener("change", async () => {
+      await loadOrganizations(filterRegion.value, filterDistrict.value);
+      onLiveFilterChange();
     });
+
+    if (filterOrg) filterOrg.addEventListener("change", onLiveFilterChange);
+    if (filterDirection) filterDirection.addEventListener("change", onLiveFilterChange);
+    if (filterChoice) filterChoice.addEventListener("change", onLiveFilterChange);
+    if (filterTestType) filterTestType.addEventListener("change", onLiveFilterChange);
+    if (filterDegree) filterDegree.addEventListener("change", onLiveFilterChange);
+    if (filterExp) filterExp.addEventListener("change", onLiveFilterChange);
+    if (filterSalary) filterSalary.addEventListener("change", onLiveFilterChange);
+    if (filterDisability) filterDisability.addEventListener("change", onLiveFilterChange);
 
     if (btnClearChoice) {
       btnClearChoice.addEventListener("click", (e) => {
         e.preventDefault();
         filterChoice.value = "";
+        onLiveFilterChange();
       });
     }
 
@@ -1160,18 +1171,6 @@
       btnQuickSearch.addEventListener("click", () => {
         loadVacanciesPage(0, false);
         switchWorkspaceTab("cards");
-      });
-    }
-
-    if (btnApplyFilters) {
-      btnApplyFilters.addEventListener("click", () => {
-        loadVacanciesPage(0, false);
-        switchWorkspaceTab("cards");
-        if (window.innerWidth < 1024 && filterSidebar) {
-          filterSidebar.classList.add("hidden");
-          if (mobileFilterChevron) mobileFilterChevron.classList.remove("rotate-180");
-          if (mobileFilterBtnText) mobileFilterBtnText.textContent = "Filtrlarni ochish";
-        }
       });
     }
 
