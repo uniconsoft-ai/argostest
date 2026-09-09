@@ -11,6 +11,11 @@
   <link rel="alternate icon" href="https://upload.wikimedia.org/wikipedia/commons/7/77/Emblem_of_Uzbekistan.svg">
   <link rel="apple-touch-icon" href="/static/img/emblem.svg">
   
+  <!-- Google Fonts: Source Sans Pro & Source Sans 3 (vacancy.argos.uz rasmiy fonti) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,200..900;1,200..900&family=Source+Sans+Pro:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -729,9 +734,12 @@
           <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mb-5 leading-relaxed">
             Qidiruv so'zi yoki tanlangan filtrlar bo'yicha vakansiyalar mavjud emas. Filtrlarni tozalab qayta urinib ko'ring.
           </p>
-          <div class="flex gap-2.5 justify-center">
+          <div class="flex flex-col sm:flex-row gap-2.5 justify-center">
             <button type="button" id="btn-empty-reset" class="px-5 py-2.5 text-xs font-bold rounded-xl bg-blue-600 hover:bg-blue-700 text-white transition shadow-xs cursor-pointer">
               Barcha vakansiyalarni ko'rsatish
+            </button>
+            <button type="button" id="btn-cards-open-latest" class="px-4 py-2.5 text-xs font-semibold rounded-xl border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition cursor-pointer">
+              Word tarixidagi oxirgi fayl
             </button>
           </div>
         </div>

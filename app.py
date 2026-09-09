@@ -1464,8 +1464,9 @@ def scan_vacancies():
                 yield f"data: {json.dumps({'type': 'status', 'message': 'Word (.docx) hujjati shakllantirilmoqda...', 'cur': 1, 'tot': 1})}\n\n"
                 filepath = docx_exporter.export_single_vacancy(detail)
                 fname = os.path.basename(filepath)
+                quoted_fname = urllib.parse.quote(fname)
 
-                yield f"data: {json.dumps({'type': 'done', 'filename': fname, 'count': 1, 'docx_url': f'/api/docx-raw/{fname}', 'preview_url': f'/api/preview/{fname}', 'vacancies': [card_item], 'message': 'Muvaffaqiyatli yakunlandi!'})}\n\n"
+                yield f"data: {json.dumps({'type': 'done', 'filename': fname, 'count': 1, 'docx_url': f'/api/docx-raw/{quoted_fname}', 'preview_url': f'/api/preview/{quoted_fname}', 'vacancies': [card_item], 'message': 'Muvaffaqiyatli yakunlandi!'})}\n\n"
             except Exception as e:
                 yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
             return
@@ -1590,7 +1591,8 @@ def scan_vacancies():
 
             filepath = doc_result.get("filepath")
             fname = os.path.basename(filepath) if filepath else ""
-            yield f"data: {json.dumps({'type': 'done', 'filename': fname, 'count': len(collected_items), 'docx_url': f'/api/docx-raw/{fname}', 'preview_url': f'/api/preview/{fname}', 'message': f'Muvaffaqiyatli saqlandi: {len(collected_items):,} ta vakansiya'})}\n\n"
+            quoted_fname = urllib.parse.quote(fname) if fname else ""
+            yield f"data: {json.dumps({'type': 'done', 'filename': fname, 'count': len(collected_items), 'docx_url': f'/api/docx-raw/{quoted_fname}', 'preview_url': f'/api/preview/{quoted_fname}', 'message': f'Muvaffaqiyatli saqlandi: {len(collected_items):,} ta vakansiya'})}\n\n"
         finally:
             local_stop.set()
             with scans_lock:
@@ -1610,12 +1612,12 @@ def stop_scan():
     return jsonify({"status": "ok", "message": "To'xtatish so'rovi qabul qilindi"})
 
 
-@app.route("/api/preview/<filename>")
+@app.route("/api/preview/<path:filename>")
 def preview_document(filename):
     """
     Word (.docx) hujjatini Mammoth orqali chiroyli HTML ko'rinishida qaytaradi.
     """
-    safe_name = os.path.basename(filename)
+    safe_name = os.path.basename(urllib.parse.unquote(filename))
     filepath = os.path.join(EXPORTS_DIR, safe_name)
     if not os.path.exists(filepath):
         return jsonify({"error": "Fayl topilmadi"}), 404
@@ -1634,27 +1636,31 @@ def preview_document(filename):
         return jsonify({"error": str(e)}), 500
 
 
-@app.route("/api/docx-raw/<filename>")
+@app.route("/api/docx-raw/<path:filename>")
 def get_docx_raw(filename):
     """
     Word (.docx) faylini client-side docx-preview.js rendereri uchun jo'natadi.
     """
-    safe_name = os.path.basename(filename)
+    safe_name = os.path.basename(urllib.parse.unquote(filename))
     filepath = os.path.join(EXPORTS_DIR, safe_name)
     if not os.path.exists(filepath):
         return "Fayl topilmadi", 404
     return send_file(
         filepath,
         mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        as_attachment=False
+        as_attachment=False,
+        download_name=safe_name
     )
 
 
-@app.route("/api/download/<filename>")
+@app.route("/api/download/<path:filename>")
 def download_document(filename):
     """Word (.docx) faylini yuklab olish"""
-    safe_name = os.path.basename(filename)
-    return send_from_directory(EXPORTS_DIR, safe_name, as_attachment=True)
+    safe_name = os.path.basename(urllib.parse.unquote(filename))
+    filepath = os.path.join(EXPORTS_DIR, safe_name)
+    if not os.path.exists(filepath):
+        return "Fayl topilmadi", 404
+    return send_from_directory(EXPORTS_DIR, safe_name, as_attachment=True, download_name=safe_name)
 
 
 @app.route("/api/upload-docx", methods=["POST"])
@@ -1778,14 +1784,15 @@ def get_history():
             else:
                 count_str = "Word hujjati"
 
+        quoted_fname = urllib.parse.quote(fname)
         items.append({
             "filename": fname,
             "size": f"{size_kb} KB",
             "date": mtime,
             "count": count_str,
-            "preview_url": f"/api/preview/{fname}",
-            "docx_url": f"/api/docx-raw/{fname}",
-            "download_url": f"/api/download/{fname}"
+            "preview_url": f"/api/preview/{quoted_fname}",
+            "docx_url": f"/api/docx-raw/{quoted_fname}",
+            "download_url": f"/api/download/{quoted_fname}"
         })
     return jsonify(items)
 
@@ -1821,15 +1828,16 @@ def export_single_vacancy_api(vac_id):
         
         filepath = docx_exporter.export_single_vacancy(detail)
         fname = os.path.basename(filepath)
+        quoted_fname = urllib.parse.quote(fname)
         card_item = format_vacancy_card_data(detail)
         
         return jsonify({
             "status": "ok",
             "filename": fname,
             "count": 1,
-            "docx_url": f"/api/docx-raw/{fname}",
-            "preview_url": f"/api/preview/{fname}",
-            "download_url": f"/api/download/{fname}",
+            "docx_url": f"/api/docx-raw/{quoted_fname}",
+            "preview_url": f"/api/preview/{quoted_fname}",
+            "download_url": f"/api/download/{quoted_fname}",
             "card": card_item,
             "message": f"Vakansiya #{vac_id} Word hujjati yaratildi!"
         })
@@ -1841,7 +1849,7 @@ def export_single_vacancy_api(vac_id):
         return jsonify({"error": str(e)}), 500
 
 
-@app.route("/api/history/<filename>", methods=["DELETE"])
+@app.route("/api/history/<path:filename>", methods=["DELETE"])
 def delete_history_document(filename):
     """
     Foydalanuvchi talabi bo'yicha hujjatlarni o'chirish taqiqlangan (arxiv saqlanadi).

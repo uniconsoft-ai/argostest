@@ -198,6 +198,11 @@ class ArgosEndToEndFlowTests(unittest.TestCase):
         self.assertEqual(r_raw.status_code, 200)
         self.assertGreater(len(r_raw.data), 1000)
 
+        # 4b. Download endpoint orqali yuklab olish
+        r_dl = self.client.get(f'/api/download/{fname}')
+        self.assertEqual(r_dl.status_code, 200)
+        self.assertGreater(len(r_dl.data), 1000)
+
         # 5. Word tarixi bo'yicha tekshirish
         r_hist = self.client.get('/api/history')
         self.assertEqual(r_hist.status_code, 200)
