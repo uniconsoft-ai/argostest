@@ -35,7 +35,7 @@
   </script>
 
   <!-- Maxsus Uslublar -->
-  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="stylesheet" href="/static/css/style.css?v=2.0.2">
 
   <!-- Mahaliy Word Rendering Kutubxonalari (Oflayn) -->
   <script src="/static/js/jszip.min.js"></script>
@@ -191,15 +191,13 @@
         </a>
 
         <!-- Word Hujjatlar tarixi -->
-        <button id="btn-history-toggle" class="flex items-center space-x-1.5 px-2.5 sm:px-3 py-2 text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition shadow-2xs cursor-pointer" title="Yaratilgan Word (.docx) hujjatlari arxivi">
-          <span>📚</span>
+        <button id="btn-history-toggle" class="flex items-center space-x-1 px-2.5 sm:px-3 py-2 text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition shadow-2xs cursor-pointer" title="Yaratilgan Word (.docx) hujjatlari arxivi">
           <span class="hidden sm:inline">Word tarixi</span>
           <span id="history-badge" class="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-300 font-extrabold">0</span>
         </button>
 
         <!-- Kompyuterdan Word ochish -->
-        <label for="local-file-input" class="hidden sm:flex cursor-pointer items-center space-x-1.5 px-2.5 sm:px-3 py-2 text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition shadow-2xs" title="Kompyuterdan mavjud Word (.docx) faylini ochish">
-          <span>📂</span>
+        <label for="local-file-input" class="hidden sm:flex cursor-pointer items-center space-x-1 px-2.5 sm:px-3 py-2 text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition shadow-2xs" title="Kompyuterdan mavjud Word (.docx) faylini ochish">
           <span class="hidden xl:inline">Fayl ochish</span>
           <input type="file" id="local-file-input" accept=".docx" class="hidden">
         </label>
@@ -252,11 +250,11 @@
       <!-- Mobil qo'shimcha amallar: Word tarixi va Fayl ochish -->
       <div class="pt-2 border-t border-slate-100 dark:border-slate-700/60 flex items-center gap-2">
         <button type="button" id="btn-drawer-history" class="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer">
-          <span>📚 Word tarixi</span>
+          <span>Word tarixi</span>
           <span id="drawer-history-badge" class="px-1.5 py-0.2 rounded-full text-[10px] bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-300 font-extrabold">0</span>
         </button>
         <label for="local-file-input" class="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer">
-          <span>📂 Fayl ochish</span>
+          <span>Fayl ochish</span>
         </label>
       </div>
     </div>
@@ -507,8 +505,7 @@
         <!-- 10. Filtrni tozalash -->
         <div class="pt-2 border-t border-slate-200/60 dark:border-slate-700/60">
           <button type="button" id="btn-clear-all-filters" 
-            class="w-full py-2.5 px-3 text-xs font-semibold rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 hover:border-rose-300 dark:hover:border-rose-800 transition cursor-pointer flex items-center justify-center gap-1.5 shadow-2xs">
-            <span>🔄</span>
+            class="w-full py-2.5 px-3 text-xs font-semibold rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 hover:border-rose-300 dark:hover:border-rose-800 transition cursor-pointer flex items-center justify-center shadow-2xs">
             <span>Filtrni tozalash</span>
           </button>
         </div>
@@ -602,14 +599,12 @@
           <div class="inline-flex rounded-xl p-1 bg-slate-200/70 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-700 text-xs">
             <button type="button" id="tab-cards-btn"
               class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg font-bold transition shadow-xs bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400">
-              <span>📋</span>
               <span>Vakansiyalar kartalari</span>
               <span id="tab-cards-badge" class="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-300 font-black">0 ta</span>
             </button>
             
             <button type="button" id="tab-docx-btn"
               class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg font-medium transition text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white">
-              <span>📄</span>
               <span>Word hujjati</span>
               <span id="tab-docx-badge" class="hidden ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300 font-bold">Tayyor</span>
             </button>
@@ -1311,15 +1306,27 @@
             <!-- Chap Ustun -->
             <div class="space-y-2.5">
               <div class="flex items-center space-x-2.5">
-                <span class="text-slate-400 dark:text-slate-500 text-sm">💼</span>
+                <svg class="w-4 h-4 text-[#3165cb] shrink-0" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M12.667 3.33333H3.33366C2.59728 3.33333 2.00033 3.93029 2.00033 4.66667V11.3333C2.00033 12.0697 2.59728 12.6667 3.33366 12.6667H12.667C13.4034 12.6667 14.0003 12.0697 14.0003 11.3333V4.66667C14.0003 3.93029 13.4034 3.33333 12.667 3.33333ZM3.33366 2C1.8609 2 0.666992 3.19391 0.666992 4.66667V11.3333C0.666992 12.8061 1.8609 14 3.33366 14H12.667C14.1398 14 15.3337 12.8061 15.3337 11.3333V4.66667C15.3337 3.19391 14.1398 2 12.667 2H3.33366Z" fill="#3165CB"/>
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M8.66699 8.00008C8.66699 6.15913 10.1594 4.66675 12.0003 4.66675H14.667C15.0352 4.66675 15.3337 4.96522 15.3337 5.33341C15.3337 5.7016 15.0352 6.00008 14.667 6.00008H12.0003C10.8958 6.00008 10.0003 6.89551 10.0003 8.00008C10.0003 9.10465 10.8958 10.0001 12.0003 10.0001H14.667C15.0352 10.0001 15.3337 10.2986 15.3337 10.6667C15.3337 11.0349 15.0352 11.3334 14.667 11.3334H12.0003C10.1594 11.3334 8.66699 9.84103 8.66699 8.00008Z" fill="#3165CB"/>
+                  <path d="M12.6663 7.99992C12.6663 8.36811 12.3679 8.66659 11.9997 8.66659C11.6315 8.66659 11.333 8.36811 11.333 7.99992C11.333 7.63173 11.6315 7.33325 11.9997 7.33325C12.3679 7.33325 12.6663 7.63173 12.6663 7.99992Z" fill="#3165CB"/>
+                </svg>
                 <span class="font-semibold text-slate-800 dark:text-slate-200">${escapeHtml(item.salary_display || "Shtat jadvali bo'yicha")}</span>
               </div>
               <div class="flex items-center space-x-2.5">
-                <span class="text-slate-400 dark:text-slate-500 text-sm">🕒</span>
+                <svg class="w-4 h-4 text-[#3165cb] shrink-0" viewBox="0 0 16 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M8 13.5C11.3137 13.5 14 10.8137 14 7.5C14 4.18629 11.3137 1.5 8 1.5C4.68629 1.5 2 4.18629 2 7.5C2 10.8137 4.68629 13.5 8 13.5ZM8 15C12.1421 15 15.5 11.6421 15.5 7.5C15.5 3.35786 12.1421 0 8 0C3.85786 0 0.5 3.35786 0.5 7.5C0.5 11.6421 3.85786 15 8 15Z" fill="#3165CB"/>
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M8 3C8.41421 3 8.75 3.33579 8.75 3.75V7.18934L10.4053 8.84467C10.6982 9.13756 10.6982 9.61244 10.4053 9.90533C10.1124 10.1982 9.63756 10.1982 9.34467 9.90533L7.46967 8.03033C7.32902 7.88968 7.25 7.69891 7.25 7.5V3.75C7.25 3.33579 7.58579 3 8 3Z" fill="#3165CB"/>
+                </svg>
                 <span class="font-semibold text-slate-800 dark:text-slate-200">${escapeHtml(item.work_type_display || "To'liq")}</span>
               </div>
               <div class="flex items-center space-x-2.5">
-                <span class="text-slate-400 dark:text-slate-500 text-sm">📅</span>
+                <svg class="w-4 h-4 text-[#3165cb] shrink-0" viewBox="0 0 24 24" fill="none" stroke="#3165CB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                  <line x1="16" y1="13" x2="8" y2="13"></line>
+                  <line x1="16" y1="17" x2="8" y2="17"></line>
+                </svg>
                 <span class="font-semibold text-slate-800 dark:text-slate-200">${escapeHtml(item.contract_display || "Nomuayyan muddatli")}</span>
               </div>
             </div>
@@ -1327,17 +1334,29 @@
             <!-- O'ng Ustun -->
             <div class="space-y-2.5">
               <div class="flex items-center space-x-2.5">
-                <span class="text-slate-400 dark:text-slate-500 text-sm">📍</span>
+                <svg class="w-4 h-4 text-[#3165cb] shrink-0" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M13.6893 1.85856C15.2347 1.21462 16.7852 2.76504 16.1412 4.31048L11.6986 14.9728C10.8297 17.058 7.77364 16.7056 7.40227 14.4773L6.84801 11.1518L3.52245 10.5975C1.29421 10.2261 0.941754 7.17003 3.02696 6.3012L13.6893 1.85856ZM14.7566 3.73356C14.8854 3.42447 14.5753 3.11439 14.2662 3.24317L3.60389 7.68581C2.90882 7.97542 3.0263 8.99412 3.76905 9.11792L7.09461 9.67218C7.72682 9.77754 8.22223 10.273 8.3276 10.9052L8.88186 14.2307C9.00565 14.9735 10.0244 15.091 10.314 14.3959L14.7566 3.73356Z" fill="#3165CB"/>
+                </svg>
                 <span class="font-semibold text-slate-800 dark:text-slate-200">${escapeHtml(item.region_display || "-")}</span>
               </div>
               <div class="flex items-center space-x-2.5">
-                <span class="text-slate-400 dark:text-slate-500 text-sm">🕒</span>
+                <svg class="w-4 h-4 text-[#3165cb] shrink-0" viewBox="0 0 16 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M8 13.5C11.3137 13.5 14 10.8137 14 7.5C14 4.18629 11.3137 1.5 8 1.5C4.68629 1.5 2 4.18629 2 7.5C2 10.8137 4.68629 13.5 8 13.5ZM8 15C12.1421 15 15.5 11.6421 15.5 7.5C15.5 3.35786 12.1421 0 8 0C3.85786 0 0.5 3.35786 0.5 7.5C0.5 11.6421 3.85786 15 8 15Z" fill="#3165CB"/>
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M8 3C8.41421 3 8.75 3.33579 8.75 3.75V7.18934L10.4053 8.84467C10.6982 9.13756 10.6982 9.61244 10.4053 9.90533C10.1124 10.1982 9.63756 10.1982 9.34467 9.90533L7.46967 8.03033C7.32902 7.88968 7.25 7.69891 7.25 7.5V3.75C7.25 3.33579 7.58579 3 8 3Z" fill="#3165CB"/>
+                </svg>
                 <span class="font-semibold text-slate-800 dark:text-slate-200">${escapeHtml(item.experience_display || "Mehnat staji talab etilmaydi")}</span>
               </div>
               
               <!-- TEST TURI (USER TALABI BO'YICHA TO'Q KO'K VA RAMKA BILAN AJRATILGAN) -->
               <div class="${testTypeContainerClass}">
-                <span class="${testTypeIconColor} text-sm font-bold">🕒</span>
+                <svg class="w-4 h-4 text-[#3165cb] dark:text-blue-300 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3.5"/>
+                  <path d="M16 2v4"/>
+                  <path d="M8 2v4"/>
+                  <path d="M3 10h18"/>
+                  <circle cx="17" cy="17.5" r="4.5"/>
+                  <path d="M17 15v2.5l1.5 1"/>
+                </svg>
                 <span class="${testTypeTextColor} text-xs sm:text-[13px] tracking-tight">
                   Test turi: ${escapeHtml(testName)}
                 </span>
@@ -1351,18 +1370,35 @@
           <div class="flex items-center justify-between sm:justify-start gap-4 font-medium">
             <div class="flex items-center gap-3">
               <span class="flex items-center gap-1.5" title="Boshlanish sanasi">
-                <span>📅</span> <span>${escapeHtml(item.date_start_uz || "-")}</span>
+                <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" viewBox="0 0 18 19" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M14.25 5H3.75C3.33579 5 3 5.33579 3 5.75V14.75C3 15.1642 3.33579 15.5 3.75 15.5H14.25C14.6642 15.5 15 15.1642 15 14.75V5.75C15 5.33579 14.6642 5 14.25 5ZM3.75 3.5C2.50736 3.5 1.5 4.50736 1.5 5.75V14.75C1.5 15.9926 2.50736 17 3.75 17H14.25C15.4926 17 16.5 15.9926 16.5 14.75V5.75C16.5 4.50736 15.4926 3.5 14.25 3.5H3.75Z" fill="currentColor"/>
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M7.5 9.5C7.08579 9.5 6.75 9.83579 6.75 10.25C6.75 10.6642 7.08579 11 7.5 11H12.75C13.1642 11 13.5 10.6642 13.5 10.25C13.5 9.83579 13.1642 9.5 12.75 9.5H7.5ZM5.25 12.5C4.83579 12.5 4.5 12.8358 4.5 13.25C4.5 13.6642 4.83579 14 5.25 14H9.75C10.1642 14 10.5 13.6642 10.5 13.25C10.5 12.8358 10.1642 12.5 9.75 12.5H5.25Z" fill="currentColor"/>
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M5.25 2C4.83579 2 4.5 2.33579 4.5 2.75V5.75C4.5 6.16421 4.83579 6.5 5.25 6.5C5.66421 6.5 6 6.16421 6 5.75V2.75C6 2.33579 5.66421 2 5.25 2ZM12.75 2C12.3358 2 12 2.33579 12 2.75V5.75C12 6.16421 12.3358 6.5 12.75 6.5C13.1642 6.5 13.5 6.16421 13.5 5.75V2.75C13.5 2.33579 13.1642 2 12.75 2Z" fill="currentColor"/>
+                </svg>
+                <span>${escapeHtml(item.date_start_uz || "-")}</span>
               </span>
               <span class="flex items-center gap-1.5" title="Tugash sanasi">
-                <span>⌛</span> <span>${escapeHtml(item.date_stop_uz || "-")}</span>
+                <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" viewBox="0 0 18 19" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M12.8179 8.56694C13.1885 8.11832 13.4457 7.5699 13.5515 6.96914C13.6707 6.29209 13.7645 5.55497 13.7645 4.91165V1.0293H5.29395V4.91165C5.29395 5.55497 5.38775 6.29209 5.50697 6.96914C5.61276 7.5699 5.87 8.11832 6.24055 8.56694C6.57339 8.9699 6.99766 9.29235 7.48573 9.49989C6.99766 9.70742 6.57339 10.0299 6.24055 10.4328C5.87 10.8815 5.61276 11.4299 5.50697 12.0306C5.38775 12.7077 5.29395 13.4448 5.29395 14.0881V17.9705H13.7645V14.0881C13.7645 13.4448 13.6707 12.7077 13.5515 12.0306C13.4457 11.4299 13.1885 10.8815 12.8179 10.4328C12.4851 10.0299 12.0608 9.70742 11.5727 9.49989C12.0608 9.29235 12.4851 8.9699 12.8179 8.56694ZM12.3528 16.5587V14.0881C12.3528 13.5635 12.2743 12.9182 12.1611 12.2755C12.0404 11.5897 11.5973 11.0444 11.0203 10.7991L9.52924 10.1651L8.03817 10.7991C7.46118 11.0444 7.01809 11.5897 6.89735 12.2755C6.78416 12.9182 6.70571 13.5635 6.70571 14.0881V16.5587H12.3528ZM9.52924 8.83472L11.0203 8.2007C11.5973 7.95535 12.0404 7.41002 12.1611 6.72431C12.2743 6.08152 12.3528 5.43627 12.3528 4.91165V2.44106H6.70571V4.91165C6.70571 5.43627 6.78416 6.08152 6.89735 6.72431C7.01809 7.41002 7.46118 7.95535 8.03817 8.2007L9.52924 8.83472Z" fill="currentColor"/>
+                  <path d="M3.88232 17.2645C3.88232 16.8746 4.19836 16.5586 4.58821 16.5586H14.4706C14.8604 16.5586 15.1764 16.8746 15.1764 17.2645C15.1764 17.6543 14.8604 17.9704 14.4706 17.9704H4.58821C4.19836 17.9704 3.88232 17.6543 3.88232 17.2645Z" fill="currentColor"/>
+                  <path d="M3.88232 1.73518C3.88232 1.34533 4.19836 1.0293 4.58821 1.0293H14.4706C14.8604 1.0293 15.1764 1.34533 15.1764 1.73518C15.1764 2.12503 14.8604 2.44106 14.4706 2.44106H4.58821C4.19836 2.44106 3.88232 2.12503 3.88232 1.73518Z" fill="currentColor"/>
+                </svg>
+                <span>${escapeHtml(item.date_stop_uz || "-")}</span>
               </span>
             </div>
             <div class="flex items-center gap-2.5 text-[11px] shrink-0">
               <span class="flex items-center gap-1" title="Ko'rishlar soni">
-                <span>👁️</span> <span>${item.views_count || 0}</span>
+                <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" viewBox="0 0 18 19" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M9.00017 14C12.0943 14 14.2946 12.0557 15.5831 10.4365C16.03 9.87487 16.03 9.12513 15.5831 8.56352C14.2946 6.94429 12.0943 5 9.00017 5C5.90605 5 3.70577 6.94429 2.41722 8.56352C1.9703 9.12513 1.9703 9.87487 2.41722 10.4365C3.70577 12.0557 5.90605 14 9.00017 14ZM16.7568 11.3705C17.6388 10.2622 17.6388 8.73781 16.7568 7.6295C15.3556 5.86869 12.7701 3.5 9.00017 3.5C5.23027 3.5 2.64471 5.86869 1.24351 7.6295C0.36154 8.73781 0.36154 10.2622 1.24351 11.3705C2.64471 13.1313 5.23027 15.5 9.00017 15.5C12.7701 15.5 15.3556 13.1313 16.7568 11.3705Z" stroke="currentColor"/>
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M10.5 9.5C10.5 10.3284 9.82843 11 9 11C8.17157 11 7.5 10.3284 7.5 9.5C7.5 9.47871 7.50044 9.45752 7.50132 9.43645C7.61824 9.47761 7.74401 9.5 7.875 9.5C8.49632 9.5 9 8.99632 9 8.375C9 8.24401 8.97761 8.11824 8.93645 8.00132C8.95752 8.00044 8.97871 8 9 8C9.82843 8 10.5 8.67157 10.5 9.5ZM12 9.5C12 11.1569 10.6569 12.5 9 12.5C7.34315 12.5 6 11.1569 6 9.5C6 7.84315 7.34315 6.5 9 6.5C10.6569 6.5 12 7.84315 12 9.5Z" stroke="currentColor"/>
+                </svg>
+                <span>${item.views_count || 0}</span>
               </span>
               <span class="flex items-center gap-1" title="Nomzodlar soni">
-                <span>👥</span> <span>${item.candidates_count || 0}</span>
+                <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke="currentColor" stroke-width="2" fill="none" d="M16 21.916c-4.797 0.020-8.806 3.369-9.837 7.856l-0.013 0.068c-0.011 0.048-0.017 0.103-0.017 0.16 0 0.414 0.336 0.75 0.75 0.75 0.357 0 0.656-0.25 0.731-0.585l0.001-0.005c0.875-3.885 4.297-6.744 8.386-6.744s7.511 2.859 8.375 6.687l0.011 0.057c0.076 0.34 0.374 0.59 0.732 0.59 0 0 0.001 0 0.001 0h-0c0.057-0 0.112-0.007 0.165-0.019l-0.005 0.001c0.34-0.076 0.59-0.375 0.59-0.733 0-0.057-0.006-0.112-0.018-0.165l0.001 0.005c-1.045-4.554-5.055-7.903-9.849-7.924h-0.002zM9.164 10.602c0 0 0 0 0 0 2.582 0 4.676-2.093 4.676-4.676s-2.093-4.676-4.676-4.676c-2.582 0-4.676 2.093-4.676 4.676v0c0.003 2.581 2.095 4.673 4.675 4.676h0zM9.164 2.75c0 0 0 0 0 0 1.754 0 3.176 1.422 3.176 3.176s-1.422 3.176-3.176 3.176c-1.754 0-3.176-1.422-3.176-3.176v0c0.002-1.753 1.423-3.174 3.175-3.176h0zM22.926 10.602c2.582 0 4.676-2.093 4.676-4.676s-2.093-4.676-4.676-4.676c-2.582 0-4.676 2.093-4.676 4.676v0c0.003 2.581 2.095 4.673 4.675 4.676h0zM22.926 2.75c1.754 0 3.176 1.422 3.176 3.176s-1.422 3.176-3.176 3.176c-1.754 0-3.176-1.422-3.176-3.176v0c0.002-1.753 1.423-3.174 3.176-3.176h0zM30.822 19.84c-0.878-3.894-4.308-6.759-8.406-6.759-0.423 0-0.839 0.031-1.246 0.089l0.046-0.006c-0.049 0.012-0.092 0.028-0.133 0.047l0.004-0.002c-0.751-2.129-2.745-3.627-5.089-3.627-2.334 0-4.321 1.485-5.068 3.561l-0.012 0.038c-0.017-0.004-0.030-0.014-0.047-0.017-0.359-0.053-0.773-0.084-1.195-0.084-0.002 0-0.005 0-0.007 0h0c-4.092 0.018-7.511 2.874-8.392 6.701l-0.011 0.058c-0.011 0.048-0.017 0.103-0.017 0.16 0 0.414 0.336 0.75 0.75 0.75 0.357 0 0.656-0.25 0.731-0.585l0.001-0.005c0.737-3.207 3.56-5.565 6.937-5.579h0.002c0.335 0 0.664 0.024 0.985 0.070l-0.037-0.004c-0.008 0.119-0.036 0.232-0.036 0.354 0.006 2.987 2.429 5.406 5.417 5.406s5.411-2.419 5.416-5.406v-0.001c0-0.12-0.028-0.233-0.036-0.352 0.016-0.002 0.031 0.005 0.047 0.001 0.294-0.044 0.634-0.068 0.98-0.068 0.004 0 0.007 0 0.011 0h-0.001c3.379 0.013 6.203 2.371 6.93 5.531l0.009 0.048c0.076 0.34 0.375 0.589 0.732 0.59h0c0.057-0 0.112-0.007 0.165-0.019l-0.005 0.001c0.34-0.076 0.59-0.375 0.59-0.733 0-0.057-0.006-0.112-0.018-0.165l0.001 0.005zM16 18.916c-0 0-0 0-0.001 0-2.163 0-3.917-1.753-3.917-3.917s1.754-3.917 3.917-3.917c2.163 0 3.917 1.754 3.917 3.917 0 0 0 0 0 0 0.001v-0c-0.003 2.162-1.754 3.913-3.916 3.916h-0z"/>
+                </svg>
+                <span>${item.candidates_count || 0}</span>
               </span>
             </div>
           </div>

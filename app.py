@@ -1088,6 +1088,18 @@ current_scan_lock = threading.Lock()
 stop_flag = False
 
 
+@app.after_request
+def add_no_cache_headers(response):
+    """
+    Brauzer eski versiyadagi JS va HTMLni keshlab olmasligi uchun
+    no-cache sarlavhalarini o'rnatish.
+    """
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response
+
+
 @app.route("/")
 def index():
     """Asosiy Web sahifani yuklaydi"""
