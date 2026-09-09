@@ -418,7 +418,6 @@ html {
 /* Kichik ekranlar uchun vakansiya kartasi optimizatsiyasi */
 @media (max-width: 640px) {
   .btn-card-export-doc,
-  #btn-quick-search,
   #btn-search-top,
   #btn-load-more {
     min-height: 40px;

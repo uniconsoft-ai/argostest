@@ -955,6 +955,9 @@ class ArgosApiClient:
 
         if progress_callback:
             filt_desc = f" [{target_label}]" if has_filter else ""
+            kw = payload.get("search")
+            if kw:
+                filt_desc += f' (Kalit so\'z: "{kw}")'
             progress_callback({
                 "type": "status",
                 "message": f"Jami {total_count:,} ta vakansiya mavjud{filt_desc}. Tahlil boshlandi...",
