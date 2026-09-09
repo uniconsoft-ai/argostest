@@ -1600,6 +1600,54 @@ def download_document(filename):
     return send_from_directory(EXPORTS_DIR, safe_name, as_attachment=True)
 
 
+@app.route("/api/upload-docx", methods=["POST"])
+def upload_docx_api():
+    """
+    Foydalanuvchi Word hujjati bo'limiga yuklagan yoki tanlagan .docx faylni qabul qilib,
+    darhol EXPORTS_DIR (Word tarixi) ga saqlaydi va ro'yxatga qo'shadi.
+    """
+    try:
+        if "file" not in request.files:
+            return jsonify({"error": "Fayl yuborilmadi"}), 400
+
+        file = request.files["file"]
+        if not file or file.filename == "":
+            return jsonify({"error": "Fayl tanlanmadi"}), 400
+
+        raw_name = file.filename
+        clean_name = os.path.basename(raw_name).strip()
+        clean_name = re.sub(r'[\\/*?:"<>|]', "", clean_name)
+        if not clean_name.lower().endswith(".docx"):
+            clean_name += ".docx"
+
+        target_path = os.path.join(EXPORTS_DIR, clean_name)
+        if os.path.exists(target_path):
+            base, ext = os.path.splitext(clean_name)
+            ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+            clean_name = f"{base}_{ts}{ext}"
+            target_path = os.path.join(EXPORTS_DIR, clean_name)
+
+        file.save(target_path)
+
+        stat = os.stat(target_path)
+        size_kb = round(stat.st_size / 1024, 1)
+        mtime = datetime.fromtimestamp(stat.st_mtime).strftime("%d.%m.%Y %H:%M:%S")
+
+        return jsonify({
+            "status": "ok",
+            "filename": clean_name,
+            "size": f"{size_kb} KB",
+            "date": mtime,
+            "count": "Yuklangan Word",
+            "preview_url": f"/api/preview/{clean_name}",
+            "docx_url": f"/api/docx-raw/{clean_name}",
+            "download_url": f"/api/download/{clean_name}",
+            "message": f'"{clean_name}" Word tarixiga muvaffaqiyatli saqlandi!'
+        })
+    except Exception as e:
+        return jsonify({"error": f"Faylni Word tarixiga saqlashda xatolik: {str(e)}"}), 500
+
+
 @app.route("/api/history")
 def get_history():
     """Avval yaratilgan Word hujjatlari tarixi"""
@@ -1615,7 +1663,12 @@ def get_history():
 
         # Nomidan sonini topish
         m_cnt = re.search(r'_(\d+)_ta', fname)
-        count_str = f"{m_cnt.group(1)} ta" if m_cnt else "Vakansiyalar to'plami"
+        if m_cnt:
+            count_str = f"{m_cnt.group(1)} ta"
+        elif "_1_ta" in fname or "Vakansiya_" in fname or "vakansiya_" in fname:
+            count_str = "1 ta vakansiya"
+        else:
+            count_str = "Word hujjati"
 
         items.append({
             "filename": fname,

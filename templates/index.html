@@ -747,12 +747,19 @@
             In-Browser Word Document Viewer
           </h4>
           <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mb-6 leading-relaxed">
-            Chap ustundagi filtrlar orqali kerakli hudud, tuman yoki test turini tanlab, <span class="font-bold text-blue-600 dark:text-blue-400">"Skanerlash"</span> tugmasini bosing. Yaratilgan Word hujjati ushbu o'ng ekranda sahifalari bilan to'liq ochiladi.
+            Chap ustundagi filtrlar orqali qidiruvni boshlang yoki kompyuteringizdan ixtiyoriy Word (.docx) faylini tanlang. Fayl darhol <span class="font-bold text-blue-600 dark:text-blue-400">Word tarixi</span>ga olib qo'yiladi va sahifalari bilan to'liq ochiladi.
           </p>
           <div class="flex flex-col sm:flex-row gap-2.5 justify-center">
-            <button type="button" id="btn-open-latest" class="px-5 py-2.5 text-xs font-bold rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition shadow-sm">
-              Oxirgi yaratilgan Wordni ko'rish
+            <label for="local-file-input" class="px-5 py-2.5 text-xs font-bold rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white transition shadow-xs cursor-pointer inline-flex items-center justify-center gap-2">
+              <span>📁</span>
+              <span>Word (.docx) faylini ochish</span>
+            </label>
+            <button type="button" id="btn-open-latest" class="px-4 py-2.5 text-xs font-semibold rounded-xl border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition cursor-pointer">
+              Word tarixidagi oxirgi fayl
             </button>
+          </div>
+          <div class="mt-4 pt-3 border-t border-dashed border-slate-200 dark:border-slate-700 text-[11px] text-slate-400 dark:text-slate-500">
+            💡 .docx faylni ushbu maydonga sichqoncha bilan tashlashingiz ham mumkin (Drag & Drop)
           </div>
         </div>
 
@@ -886,6 +893,7 @@
     const historyBadge = document.getElementById("history-badge");
     const btnCardsOpenLatest = document.getElementById("btn-cards-open-latest");
     const localFileInput = document.getElementById("local-file-input");
+    const btnOpenLatest = document.getElementById("btn-open-latest");
 
     const tabCardsBtn = document.getElementById("tab-cards-btn");
     const tabDocxBtn = document.getElementById("tab-docx-btn");
@@ -1500,6 +1508,8 @@
         
         if (!currentDocxBlob && currentDocxFilename) {
           loadDocumentByName(currentDocxFilename);
+        } else if (!currentDocxBlob && !currentDocxFilename) {
+          loadLatestDocAndCards(true);
         }
       }
     }
@@ -1738,16 +1748,109 @@
       }
     }
 
-    // Kompyuterdan mahalliy docx ochish
-    localFileInput.addEventListener("change", async (e) => {
-      const file = e.target.files[0];
+    // Kompyuterdan yoki drag-and-drop orqali Word (.docx) yuklash va darhol Word tarixiga qo'shish
+    async function handleFileUpload(file) {
       if (!file) return;
-      if (mobileNavDrawer) mobileNavDrawer.classList.add("hidden");
-      await renderDocxFromBlob(file, file.name, {
-        count: "Mahalliy fayl",
-        meta: `Hajmi: ${Math.round(file.size / 1024)} KB`
+      if (!file.name.toLowerCase().endsWith(".docx")) {
+        showNotification("Noto'g'ri format", "Faqat .docx formatidagi Word hujjatlari qabul qilinadi.", "error");
+        return;
+      }
+
+      // Word hujjati tabiga o'tkazish
+      switchWorkspaceTab("docx");
+      emptyState.classList.add("hidden");
+      loadingState.classList.remove("hidden");
+      loadingText.textContent = `"${file.name}" Word tarixiga saqlanmoqda va tayyorlanmoqda...`;
+      zoomWrapper.classList.add("hidden");
+      readerWrapper.classList.add("hidden");
+
+      let serverFilename = file.name;
+      let serverMeta = `Hajmi: ${Math.round(file.size / 1024)} KB`;
+      let serverCount = "Yuklangan Word";
+
+      try {
+        // 1. Faylni darhol serverga (Word tarixi - exports/) yuklash
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const res = await fetch("/api/upload-docx", {
+          method: "POST",
+          body: formData
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          serverFilename = data.filename || file.name;
+          serverMeta = `${data.date} • ${data.size}`;
+          serverCount = data.count || "Yuklangan Word";
+        }
+      } catch (uploadErr) {
+        console.warn("Faylni serverga yuklashda ogohlantirish:", uploadErr);
+      }
+
+      // 2. Darhol Word tarixi ro'yxatini va nishonlarini yangilash
+      await refreshHistoryList();
+
+      // 3. Ekranda Word hujjatini to'liq ko'rsatish
+      await renderDocxFromBlob(file, serverFilename, {
+        count: serverCount,
+        meta: `${serverMeta} • Word tarixiga qo'shildi`
       });
-    });
+
+      tabDocxBadge.classList.remove("hidden");
+      tabDocxBadge.textContent = "Tayyor";
+
+      showNotification("Word tarixiga olindi! 📚", `"${serverFilename}" Word tarixiga muvaffaqiyatli saqlandi va ochildi.`, "success");
+    }
+
+    // Kompyuterdan mahalliy docx ochish
+    if (localFileInput) {
+      localFileInput.addEventListener("change", async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        if (mobileNavDrawer) mobileNavDrawer.classList.add("hidden");
+        await handleFileUpload(file);
+        localFileInput.value = "";
+      });
+    }
+
+    // Empty state "Word tarixidagi oxirgi fayl" tugmasi
+    if (btnOpenLatest) {
+      btnOpenLatest.addEventListener("click", () => {
+        loadLatestDocAndCards(true);
+      });
+    }
+
+    // Drag-and-drop orqali Word (.docx) faylini tashlaganda avtomatik Word tarixiga olish
+    const mainWorkspaceSection = docxContainer ? docxContainer.closest("section") : null;
+    if (mainWorkspaceSection) {
+      ['dragenter', 'dragover'].forEach(name => {
+        mainWorkspaceSection.addEventListener(name, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (docxContainer) {
+            docxContainer.classList.add("ring-4", "ring-blue-500/30", "bg-blue-50/20");
+          }
+        });
+      });
+
+      ['dragleave', 'drop'].forEach(name => {
+        mainWorkspaceSection.addEventListener(name, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (docxContainer) {
+            docxContainer.classList.remove("ring-4", "ring-blue-500/30", "bg-blue-50/20");
+          }
+        });
+      });
+
+      mainWorkspaceSection.addEventListener("drop", async (e) => {
+        if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+          const file = e.dataTransfer.files[0];
+          await handleFileUpload(file);
+        }
+      });
+    }
 
     // =========================================================================
     // 5. ZOOM VA REJIMLARNI BOSHQARISH
@@ -2213,7 +2316,7 @@
       }
     });
 
-    async function loadLatestDocAndCards() {
+    async function loadLatestDocAndCards(stayOnDocx = false) {
       const items = await refreshHistoryList();
       if (items && items.length > 0) {
         const latest = items[0];
@@ -2226,8 +2329,10 @@
             const cData = await r.json();
             if (cData && cData.length > 0) {
               renderAllCards(cData);
-              switchWorkspaceTab("cards");
-              return;
+              if (!stayOnDocx) {
+                switchWorkspaceTab("cards");
+                return;
+              }
             }
           }
         } catch (e) {
@@ -2235,7 +2340,9 @@
         }
         switchWorkspaceTab("docx");
       } else {
-        showNotification("Hujjat yo'q", "Avval bitta skanerlashni amalga oshiring, Word hujjati avtomatik yaratiladi.", "info");
+        if (!stayOnDocx) {
+          showNotification("Hujjat yo'q", "Avval bitta skanerlashni amalga oshiring yoki kompyuteringizdan Word (.docx) faylini tanlang.", "info");
+        }
       }
     }
 
