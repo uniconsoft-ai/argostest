@@ -277,9 +277,9 @@
           <span>Filtrlash va saralash</span>
           <span id="mobile-filter-badge" class="hidden px-2 py-0.5 rounded-full text-[10px] bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-300 font-extrabold">0</span>
         </div>
-        <div class="flex items-center gap-1.5 text-xs text-blue-600 dark:text-blue-400 font-semibold">
-          <span id="mobile-filter-btn-text">Filtrlarni ochish</span>
-          <span id="mobile-filter-chevron" class="inline-block transition-transform duration-200">▼</span>
+        <div class="flex items-center gap-1.5 text-xs font-semibold text-[#475569]">
+          <span id="mobile-filter-btn-text" class="text-[#475569] font-medium" style="color: #475569;">Filtr</span>
+          <span id="mobile-filter-chevron" class="inline-block transition-transform duration-200 text-[#475569]" style="color: #475569;">▲</span>
         </div>
       </button>
     </div>
@@ -287,7 +287,7 @@
     <!-- ====================================================================== -->
     <!-- CHAP USTUN: FILTRLAR PANELI (vacancy.argos.uz 100% rasmiy ko'rinish) -->
     <!-- ====================================================================== -->
-    <aside id="filter-sidebar" class="hidden lg:block w-full lg:w-[275px] xl:w-[290px] shrink-0 sticky lg:top-20 z-30 transition-all">
+    <aside id="filter-sidebar" class="w-full lg:w-[275px] xl:w-[290px] shrink-0 sticky lg:top-20 z-30 transition-all">
       <div class="argos-aside max-h-none lg:max-h-[calc(100vh-6rem)] overflow-y-auto custom-sidebar-scroll">
         
         <!-- 1. Hudud & Tuman/shahar -->
@@ -1196,12 +1196,14 @@
         const isHidden = filterSidebar.classList.contains("hidden");
         if (isHidden) {
           filterSidebar.classList.remove("hidden");
-          if (mobileFilterChevron) mobileFilterChevron.classList.add("rotate-180");
-          if (mobileFilterBtnText) mobileFilterBtnText.textContent = "Filtrlarni yashirish";
+          if (mobileFilterChevron) mobileFilterChevron.textContent = "▲";
         } else {
           filterSidebar.classList.add("hidden");
-          if (mobileFilterChevron) mobileFilterChevron.classList.remove("rotate-180");
-          if (mobileFilterBtnText) mobileFilterBtnText.textContent = "Filtrlarni ochish";
+          if (mobileFilterChevron) mobileFilterChevron.textContent = "▼";
+        }
+        if (mobileFilterBtnText) {
+          mobileFilterBtnText.textContent = "Filtr";
+          mobileFilterBtnText.style.color = "#475569";
         }
       });
     }
