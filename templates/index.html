@@ -1011,9 +1011,27 @@
       }
     }
 
-    function onLiveFilterChange() {
-      loadVacanciesPage(0, false);
-      switchWorkspaceTab("cards");
+    function updateFilterBadge() {
+      let activeFilterCount = 0;
+      if (filterRegion && filterRegion.value) activeFilterCount++;
+      if (filterDistrict && filterDistrict.value) activeFilterCount++;
+      if (filterOrg && filterOrg.value) activeFilterCount++;
+      if (filterDirection && filterDirection.value) activeFilterCount++;
+      if (filterChoice && filterChoice.value !== "") activeFilterCount++;
+      if (filterTestType && filterTestType.value && filterTestType.value !== "all" && filterTestType.value !== "") activeFilterCount++;
+      if (filterDegree && filterDegree.value) activeFilterCount++;
+      if (filterExp && filterExp.value !== "") activeFilterCount++;
+      if (filterSalary && filterSalary.value) activeFilterCount++;
+      if (filterDisability && filterDisability.checked) activeFilterCount++;
+
+      if (mobileFilterBadge) {
+        if (activeFilterCount > 0) {
+          mobileFilterBadge.textContent = `${activeFilterCount} ta faol`;
+          mobileFilterBadge.classList.remove("hidden");
+        } else {
+          mobileFilterBadge.classList.add("hidden");
+        }
+      }
     }
 
     filterRegion.addEventListener("change", async () => {
@@ -1022,7 +1040,7 @@
       if (!val) {
         filterDistrict.disabled = true;
         await loadOrganizations();
-        onLiveFilterChange();
+        updateFilterBadge();
         return;
       }
 
@@ -1040,28 +1058,28 @@
         console.error("Tumanlarni yuklashda xatolik:", err);
       }
       await loadOrganizations(val, null);
-      onLiveFilterChange();
+      updateFilterBadge();
     });
 
     filterDistrict.addEventListener("change", async () => {
       await loadOrganizations(filterRegion.value, filterDistrict.value);
-      onLiveFilterChange();
+      updateFilterBadge();
     });
 
-    if (filterOrg) filterOrg.addEventListener("change", onLiveFilterChange);
-    if (filterDirection) filterDirection.addEventListener("change", onLiveFilterChange);
-    if (filterChoice) filterChoice.addEventListener("change", onLiveFilterChange);
-    if (filterTestType) filterTestType.addEventListener("change", onLiveFilterChange);
-    if (filterDegree) filterDegree.addEventListener("change", onLiveFilterChange);
-    if (filterExp) filterExp.addEventListener("change", onLiveFilterChange);
-    if (filterSalary) filterSalary.addEventListener("change", onLiveFilterChange);
-    if (filterDisability) filterDisability.addEventListener("change", onLiveFilterChange);
+    if (filterOrg) filterOrg.addEventListener("change", updateFilterBadge);
+    if (filterDirection) filterDirection.addEventListener("change", updateFilterBadge);
+    if (filterChoice) filterChoice.addEventListener("change", updateFilterBadge);
+    if (filterTestType) filterTestType.addEventListener("change", updateFilterBadge);
+    if (filterDegree) filterDegree.addEventListener("change", updateFilterBadge);
+    if (filterExp) filterExp.addEventListener("change", updateFilterBadge);
+    if (filterSalary) filterSalary.addEventListener("change", updateFilterBadge);
+    if (filterDisability) filterDisability.addEventListener("change", updateFilterBadge);
 
     if (btnClearChoice) {
       btnClearChoice.addEventListener("click", (e) => {
         e.preventDefault();
         filterChoice.value = "";
-        onLiveFilterChange();
+        updateFilterBadge();
       });
     }
 
@@ -1080,10 +1098,9 @@
         filterDisability.checked = false;
         inputSearch.value = "";
         if (btnClearSearch) btnClearSearch.classList.add("hidden");
-        if (mobileFilterBadge) mobileFilterBadge.classList.add("hidden");
+        updateFilterBadge();
         loadOrganizations();
         showNotification("Filtrlar tozalandi", "Barcha qidiruv filtrlari dastlabki holatga qaytarildi.", "info");
-        loadVacanciesPage(0, false);
       });
     }
 
@@ -1141,7 +1158,6 @@
     }
 
     // Kalit so'z qidiruv maydoni boshqaruvi
-    let searchDebounceTimeout = null;
     inputSearch.addEventListener("input", () => {
       if (btnClearSearch) {
         if (inputSearch.value.trim().length > 0) {
@@ -1150,10 +1166,6 @@
           btnClearSearch.classList.add("hidden");
         }
       }
-      clearTimeout(searchDebounceTimeout);
-      searchDebounceTimeout = setTimeout(() => {
-        loadVacanciesPage(0, false);
-      }, 500);
     });
 
     inputSearch.addEventListener("keydown", (e) => {
@@ -1195,7 +1207,6 @@
         inputSearch.value = "";
         btnClearSearch.classList.add("hidden");
         inputSearch.focus();
-        loadVacanciesPage(0, false);
       });
     }
 
@@ -1505,27 +1516,8 @@
         }
       }
 
-      // Faol filtrlar sonini hisoblash (mobil tugmadagi nishon uchun)
-      let activeFilterCount = 0;
-      if (filterRegion && filterRegion.value) activeFilterCount++;
-      if (filterDistrict && filterDistrict.value) activeFilterCount++;
-      if (filterOrg && filterOrg.value) activeFilterCount++;
-      if (filterDirection && filterDirection.value) activeFilterCount++;
-      if (filterChoice && filterChoice.value !== "") activeFilterCount++;
-      if (filterTestType && filterTestType.value && filterTestType.value !== "all") activeFilterCount++;
-      if (filterDegree && filterDegree.value) activeFilterCount++;
-      if (filterExp && filterExp.value !== "") activeFilterCount++;
-      if (filterSalary && filterSalary.value) activeFilterCount++;
-      if (filterDisability && filterDisability.checked) activeFilterCount++;
-
-      if (mobileFilterBadge) {
-        if (activeFilterCount > 0) {
-          mobileFilterBadge.textContent = `${activeFilterCount} ta faol`;
-          mobileFilterBadge.classList.remove("hidden");
-        } else {
-          mobileFilterBadge.classList.add("hidden");
-        }
-      }
+      // Faol filtrlar sonini yangilash (mobil nishon uchun)
+      updateFilterBadge();
 
       const payload = {
         page: page,
