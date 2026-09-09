@@ -8,13 +8,11 @@
       "**/__pycache__/**",
       "exports/**"
     ],
-    "rewrites": [
+    "redirects": [
       {
         "source": "**",
-        "run": {
-          "serviceId": "argos-web",
-          "region": "us-central1"
-        }
+        "destination": "https://argostest.onrender.com",
+        "type": 302
       }
     ]
   }

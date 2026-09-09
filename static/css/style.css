@@ -421,7 +421,60 @@ html {
   #btn-quick-search,
   #btn-search-top,
   #btn-load-more {
-    min-height: 42px;
+    min-height: 40px;
   }
+}
+
+/* Moslashuvchan skroll panellari (Custom Scrollbars) */
+.custom-sidebar-scroll::-webkit-scrollbar,
+#history-list::-webkit-scrollbar,
+#cards-view::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+.custom-sidebar-scroll::-webkit-scrollbar-track,
+#history-list::-webkit-scrollbar-track,
+#cards-view::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-sidebar-scroll::-webkit-scrollbar-thumb,
+#history-list::-webkit-scrollbar-thumb,
+#cards-view::-webkit-scrollbar-thumb {
+  background-color: rgba(148, 163, 184, 0.4);
+  border-radius: 9999px;
+}
+.custom-sidebar-scroll::-webkit-scrollbar-thumb:hover,
+#history-list::-webkit-scrollbar-thumb:hover,
+#cards-view::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(148, 163, 184, 0.7);
+}
+.dark .custom-sidebar-scroll::-webkit-scrollbar-thumb,
+.dark #history-list::-webkit-scrollbar-thumb,
+.dark #cards-view::-webkit-scrollbar-thumb {
+  background-color: rgba(100, 116, 139, 0.4);
+}
+.dark .custom-sidebar-scroll::-webkit-scrollbar-thumb:hover,
+.dark #history-list::-webkit-scrollbar-thumb:hover,
+.dark #cards-view::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(100, 116, 139, 0.7);
+}
+
+.custom-sidebar-scroll,
+#history-list,
+#cards-view {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
+}
+.dark .custom-sidebar-scroll,
+.dark #history-list,
+.dark #cards-view {
+  scrollbar-color: rgba(100, 116, 139, 0.4) transparent;
+}
+
+/* docx-preview jadval matnlarining mobil ekranda toshib ketishini oldini olish */
+.docx-wrapper > section.docx table td,
+.docx-wrapper > section.docx table th {
+  word-break: break-word !important;
+  overflow-wrap: break-word !important;
 }
 
