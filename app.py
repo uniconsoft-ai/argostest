@@ -300,6 +300,8 @@ def format_vacancy_card_data(res: Dict[str, Any]) -> Dict[str, Any]:
         "likes_count": res.get("likesCount", 0),
         "candidates_count": res.get("get_candidates_count", 0),
         "is_internal": bool(res.get("is_internal")),
+        "is_disability": bool(res.get("is_disablity") or res.get("isDisablity") or res.get("is_disability") or res.get("isDisability")),
+        "is_dfx": bool(res.get("is_dfx")),
         "argos_url": f"https://vacancy.argos.uz/hrm-vacancy-detail/{v_id}"
     }
 
@@ -456,6 +458,9 @@ class DocxExporter:
             ("🔗 Rasmiy Argos havolasi:", argos_link),
             ("Vakansiya ID raqami:", str(v_id or "-"))
         ]
+
+        if bool(item.get("is_disablity") or item.get("isDisablity") or item.get("is_disability") or item.get("isDisability")):
+            params_data.insert(8, ("♿ Nogironligi bo'lgan shaxslar:", "Maxsus ajratilgan ish o'rni"))
 
         for i, (k, v) in enumerate(params_data):
             row = table.add_row()
@@ -987,6 +992,11 @@ class ArgosApiClient:
             except ValueError:
                 pass
 
+        if 'isDisablity' in params and params['isDisablity'][0]:
+            search_payload['isDisablity'] = params['isDisablity'][0].lower() in ('true', '1')
+        elif 'isDisability' in params and params['isDisability'][0]:
+            search_payload['isDisablity'] = params['isDisability'][0].lower() in ('true', '1')
+
         return 'list', search_payload
 
 
@@ -1464,7 +1474,9 @@ def get_vacancies():
             v_id = item.get("id")
             try:
                 detail = api_client.get_vacancy_detail(v_id)
-                return format_vacancy_card_data(detail)
+                merged = dict(item)
+                merged.update(detail)
+                return format_vacancy_card_data(merged)
             except Exception:
                 return format_vacancy_card_data(item)
 
