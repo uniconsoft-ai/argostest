@@ -1094,6 +1094,12 @@ def index():
     return render_template("index.html")
 
 
+@app.route("/favicon.ico")
+def favicon():
+    """Brauzer tab nishoni (O'zbekiston Davlat Gerbi)"""
+    return send_from_directory(os.path.join(BASE_DIR, "static", "img"), "emblem.svg", mimetype="image/svg+xml")
+
+
 @app.route("/api/regions")
 def get_regions():
     """Viloyatlar ro'yxati"""

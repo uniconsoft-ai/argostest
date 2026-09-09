@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+*.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.env
+.firebase/
+exports/*.docx
+!exports/.gitkeep
+*.log
