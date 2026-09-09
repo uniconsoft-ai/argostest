@@ -445,48 +445,75 @@ html {
   scroll-behavior: smooth;
 }
 
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
 /* Sensorli qurilmalarda tezkor va silliq skroll */
 #cards-view,
 #docx-container,
-#history-list {
+#history-list,
+#mobile-nav-drawer {
   -webkit-overflow-scrolling: touch;
+}
+
+/* Mobil qurilmalarda iOS Auto-Zoom oldini olish (font-size >= 16px) */
+@media (max-width: 768px) {
+  input[type="text"],
+  input[type="search"],
+  select.argos-select {
+    font-size: 16px !important;
+  }
 }
 
 /* Mobil filtr panelining silliq ochilishi */
 @media (max-width: 1023px) {
-  #filter-sidebar {
-    animation: fadeInSlide 0.2s ease-out;
+  #filter-sidebar:not(.hidden) {
+    animation: fadeInSlide 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 }
 
 @keyframes fadeInSlide {
   from {
     opacity: 0;
-    transform: translateY(-8px);
+    transform: translateY(-8px) scale(0.99);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 
 /* Suzuvchi Yuqoriga Tugmasi */
 #btn-back-to-top {
   transition: opacity 0.25s ease, transform 0.2s ease;
+  bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
+  right: calc(1.25rem + env(safe-area-inset-right, 0px));
 }
 #btn-back-to-top:hover {
   transform: translateY(-2px);
 }
 #btn-back-to-top:active {
-  transform: translateY(0);
+  transform: translateY(0) scale(0.95);
 }
 
-/* Kichik ekranlar uchun vakansiya kartasi optimizatsiyasi */
+/* Kichik ekranlar uchun interaktiv tugmalar optimizatsiyasi */
 @media (max-width: 640px) {
   .btn-card-export-doc,
   #btn-search-top,
-  #btn-load-more {
+  #btn-stop-top,
+  #btn-load-more,
+  .history-sort-btn {
     min-height: 40px;
+  }
+  
+  /* Kichik ekranlarda Word sahifalari chetidan toshib ketmasligi uchun padding */
+  .docx-wrapper {
+    padding: 12px 6px !important;
+    gap: 12px !important;
+  }
+  .mammoth-content {
+    padding: 20px 16px !important;
   }
 }
 

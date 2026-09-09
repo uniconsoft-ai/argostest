@@ -219,9 +219,10 @@
         </button>
 
         <!-- 3. Word Hujjatlar tarixi -->
-        <button id="btn-history-toggle" class="flex items-center space-x-1 px-2.5 sm:px-3 py-2 text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition shadow-2xs cursor-pointer" title="Yaratilgan Word (.docx) hujjatlari arxivi">
+        <button id="btn-history-toggle" class="flex items-center space-x-1.5 px-2.5 sm:px-3 py-2 text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition shadow-2xs cursor-pointer active:scale-95" title="Yaratilgan Word (.docx) hujjatlari arxivi">
+          <span class="text-xs">📚</span>
           <span class="hidden sm:inline">Word tarixi</span>
-          <span id="history-badge" class="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-300 font-extrabold">0</span>
+          <span id="history-badge" class="ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-300 font-extrabold">0</span>
         </button>
 
         <!-- 4. Kompyuterdan Word ochish -->
@@ -324,7 +325,7 @@
         </div>
         <div class="flex items-center gap-1.5 text-xs font-semibold text-[#475569]">
           <span id="mobile-filter-btn-text" class="text-[#475569] font-medium" style="color: #475569;">Filtr</span>
-          <span id="mobile-filter-chevron" class="inline-block transition-transform duration-200 text-[#475569]" style="color: #475569;">▲</span>
+          <span id="mobile-filter-chevron" class="inline-block transition-transform duration-200 text-[#475569]" style="color: #475569;">▼</span>
         </div>
       </button>
     </div>
@@ -332,7 +333,7 @@
     <!-- ====================================================================== -->
     <!-- CHAP USTUN: FILTRLAR PANELI (vacancy.argos.uz 100% rasmiy ko'rinish) -->
     <!-- ====================================================================== -->
-    <aside id="filter-sidebar" class="lg:block w-full lg:w-[285px] xl:w-[295px] shrink-0 z-30 transition-all">
+    <aside id="filter-sidebar" class="hidden lg:block w-full lg:w-[285px] xl:w-[295px] shrink-0 z-30 transition-all">
       <div class="argos-aside">
         
         <!-- 1. Hudud & Tuman/shahar -->
@@ -537,10 +538,14 @@
           </label>
         </div>
 
-        <!-- 10. Filtrni tozalash -->
-        <div class="pt-2">
+        <!-- 10. Filtrni tozalash & Natijalarni ko'rish (Mobil uchun) -->
+        <div class="pt-2 space-y-2">
           <button type="button" id="btn-clear-all-filters" class="argos-btn-reset">
             <span>Filtrni tozalash</span>
+          </button>
+          <button type="button" id="btn-apply-mobile-filters" class="lg:hidden w-full py-2.5 px-4 rounded-xl bg-[#3165cb] hover:bg-blue-700 active:bg-blue-800 text-white font-bold text-xs shadow-xs transition flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]">
+            <span>Natijalarni ko'rish</span>
+            <span class="text-xs">✕</span>
           </button>
         </div>
 
@@ -563,9 +568,9 @@
           </h2>
         </div>
 
-        <div class="flex flex-col sm:flex-row items-center gap-2.5">
+        <div class="flex items-center gap-2 w-full">
           <!-- Qidiruv maydoni (Izlash) -->
-          <div class="relative flex-1 w-full">
+          <div class="relative flex-1 min-w-0">
             <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-[#a2ade8]">
               <svg class="w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M11.0833 18.4167C15.1334 18.4167 18.4167 15.1334 18.4167 11.0833C18.4167 7.03325 15.1334 3.75 11.0833 3.75C7.03325 3.75 3.75 7.03325 3.75 11.0833C3.75 15.1334 7.03325 18.4167 11.0833 18.4167Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -573,7 +578,7 @@
               </svg>
             </div>
             <input type="text" id="input-search"
-              class="w-full pl-10 pr-9 py-2.5 text-xs sm:text-sm bg-[#f3f5fb] dark:bg-[#051257] border border-slate-300/80 dark:border-[#a2ade8] rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:text-white placeholder-slate-400 dark:placeholder-[#a9b3d6] font-medium transition"
+              class="w-full pl-10 pr-9 py-2.5 text-xs sm:text-sm bg-[#f3f5fb] dark:bg-[#051257] border border-slate-300/80 dark:border-[#a2ade8] rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:text-white placeholder-slate-400 dark:placeholder-[#a9b3d6] font-medium transition truncate"
               placeholder="Kasb, lavozim, vakansiya yoki tashkilot nomi bo'yicha qidiruv (Masalan: iqtisodchi, bosh mutaxassis)...">
             <button type="button" id="btn-clear-search" class="hidden absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-sm" title="Tozalash">
               ✕
@@ -581,7 +586,7 @@
           </div>
 
           <!-- Skanerlash va Boshqaruv tugmalari (Task 2: Faqat Lupa icon, text ko'rinmaydi) -->
-          <div class="flex items-center gap-2 w-full sm:w-auto shrink-0 justify-end">
+          <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <button type="button" id="btn-search-top"
               class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-[#3165cb] hover:bg-blue-700 active:bg-blue-800 text-white shadow-xs shadow-blue-500/20 transition-all duration-200 flex items-center justify-center cursor-pointer shrink-0 hover:scale-105 active:scale-95"
               title="Skanerlash"
@@ -1409,6 +1414,18 @@
       });
     }
 
+    const btnApplyMobileFilters = document.getElementById("btn-apply-mobile-filters");
+    if (btnApplyMobileFilters && filterSidebar) {
+      btnApplyMobileFilters.addEventListener("click", () => {
+        filterSidebar.classList.add("hidden");
+        if (mobileFilterChevron) mobileFilterChevron.textContent = "▼";
+        const workspaceSec = document.getElementById("workspace-section");
+        if (workspaceSec) {
+          workspaceSec.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      });
+    }
+
     if (btnLoadMore) {
       btnLoadMore.addEventListener("click", () => {
         if (currentlyRenderedCount < currentVacancies.length) {
@@ -1636,18 +1653,18 @@
               </span>
             </div>
           </div>
-          <div class="flex items-center gap-2 w-full sm:w-auto">
+          <div class="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full sm:w-auto">
             <!-- Yakka ushbu vakansiyani Word qilish tugmasi -->
-            <button type="button" class="btn-card-export-doc flex-1 sm:flex-none justify-center px-3 py-2 sm:py-1.5 rounded-lg border border-blue-200 dark:border-[#a2ade8]/40 bg-blue-50 dark:bg-[#051257] hover:bg-blue-600 hover:text-white dark:hover:bg-[#3165cb] text-blue-700 dark:text-[#cfd6f3] transition flex items-center gap-1.5 text-xs font-bold shadow-2xs cursor-pointer min-h-[36px]" data-id="${item.id}" title="Faqat shu vakansiyani Word (.docx) hujjati qilib ochish">
+            <button type="button" class="btn-card-export-doc justify-center px-3 py-2 sm:py-1.5 rounded-lg border border-blue-200 dark:border-[#a2ade8]/40 bg-blue-50 dark:bg-[#051257] hover:bg-blue-600 hover:text-white dark:hover:bg-[#3165cb] text-blue-700 dark:text-[#cfd6f3] transition flex items-center gap-1.5 text-xs font-bold shadow-2xs cursor-pointer min-h-[42px] sm:min-h-[36px] active:scale-[0.98]" data-id="${item.id}" title="Faqat shu vakansiyani Word (.docx) hujjati qilib ochish">
               <span>📄</span>
-              <span>Word (.docx)</span>
+              <span class="truncate">Word (.docx)</span>
             </button>
 
             <!-- Rasmiy Argos portalida ochish -->
             <a href="${argosUrl}"
-              class="flex-1 sm:flex-none justify-center px-3 py-2 sm:py-1.5 rounded-lg border border-slate-200 dark:border-[#a2ade8]/40 bg-white dark:bg-transparent hover:bg-slate-100 dark:hover:bg-white/10 text-slate-700 dark:text-[#dfe6f4] transition flex items-center gap-1 text-xs font-bold shadow-2xs min-h-[36px]"
+              class="justify-center px-3 py-2 sm:py-1.5 rounded-lg border border-slate-200 dark:border-[#a2ade8]/40 bg-white dark:bg-transparent hover:bg-slate-100 dark:hover:bg-white/10 text-slate-700 dark:text-[#dfe6f4] transition flex items-center gap-1 text-xs font-bold shadow-2xs min-h-[42px] sm:min-h-[36px] active:scale-[0.98]"
               title="Rasmiy Argos portalida to'liq ko'rish">
-              <span>Argosda ochish</span>
+              <span class="truncate">Argosda ochish</span>
               <span>↗️</span>
             </a>
           </div>
@@ -2636,18 +2653,18 @@
               ${escapeHtml(item.count || "")}
             </span>
           </div>
-          <div class="flex items-center justify-end space-x-2 pt-2.5 border-t border-slate-200/70 dark:border-[#a2ade8]/20 flex-wrap gap-y-1">
-            <button type="button" class="btn-history-view-docx px-2.5 py-1 text-xs font-bold rounded-lg bg-[#3165cb] hover:bg-blue-700 active:bg-blue-800 text-white transition cursor-pointer flex items-center gap-1 shadow-2xs" data-name="${escapeHtml(item.filename)}" data-count="${escapeHtml(item.count)}" data-meta="${escapeHtml(item.date)} • ${escapeHtml(item.size)}">
-              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-              <span>Wordni ochish</span>
+          <div class="grid grid-cols-3 sm:flex sm:items-center sm:justify-end gap-1.5 sm:gap-2 pt-2.5 border-t border-slate-200/70 dark:border-[#a2ade8]/20">
+            <button type="button" class="btn-history-view-docx justify-center px-2 py-2 sm:py-1 text-xs font-bold rounded-lg bg-[#3165cb] hover:bg-blue-700 active:bg-blue-800 text-white transition cursor-pointer flex items-center gap-1 shadow-2xs min-h-[38px] sm:min-h-auto active:scale-95" data-name="${escapeHtml(item.filename)}" data-count="${escapeHtml(item.count)}" data-meta="${escapeHtml(item.date)} • ${escapeHtml(item.size)}">
+              <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              <span class="truncate">Word</span>
             </button>
-            <button type="button" class="btn-history-view-cards px-2.5 py-1 text-xs font-medium rounded-lg border border-blue-500/40 dark:border-[#a2ade8]/40 hover:bg-blue-50 dark:hover:bg-[#32419b] text-[#3165cb] dark:text-[#dfe6f4] transition cursor-pointer flex items-center gap-1" data-name="${escapeHtml(item.filename)}">
-              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-              <span>Kartalar</span>
+            <button type="button" class="btn-history-view-cards justify-center px-2 py-2 sm:py-1 text-xs font-medium rounded-lg border border-blue-500/40 dark:border-[#a2ade8]/40 hover:bg-blue-50 dark:hover:bg-[#32419b] text-[#3165cb] dark:text-[#dfe6f4] transition cursor-pointer flex items-center gap-1 min-h-[38px] sm:min-h-auto active:scale-95" data-name="${escapeHtml(item.filename)}">
+              <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+              <span class="truncate">Kartalar</span>
             </button>
-            <a href="${item.download_url}" download class="px-2.5 py-1 text-xs font-medium rounded-lg border border-slate-200 dark:border-[#a2ade8]/40 hover:bg-slate-100 dark:hover:bg-[#32419b] text-slate-700 dark:text-[#dfe6f4] transition flex items-center gap-1">
-              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-              <span>Yuklab olish</span>
+            <a href="${item.download_url}" download class="justify-center px-2 py-2 sm:py-1 text-xs font-medium rounded-lg border border-slate-200 dark:border-[#a2ade8]/40 hover:bg-slate-100 dark:hover:bg-[#32419b] text-slate-700 dark:text-[#dfe6f4] transition flex items-center gap-1 min-h-[38px] sm:min-h-auto active:scale-95">
+              <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+              <span class="truncate">Yuklash</span>
             </a>
           </div>
         `;
@@ -2873,8 +2890,8 @@
       const btnBackToTop = document.getElementById("btn-back-to-top");
       if (btnBackToTop) {
         const updateBackToTop = () => {
-          const scrollPos = window.scrollY || (cardsView ? cardsView.scrollTop : 0);
-          if (scrollPos > 300) {
+          const scrollPos = window.scrollY || document.documentElement.scrollTop || (cardsView ? cardsView.scrollTop : 0);
+          if (scrollPos > 280) {
             btnBackToTop.classList.remove("opacity-0", "pointer-events-none");
             btnBackToTop.classList.add("opacity-100", "pointer-events-auto");
           } else {
@@ -2883,6 +2900,7 @@
           }
         };
         window.addEventListener("scroll", updateBackToTop, { passive: true });
+        document.addEventListener("scroll", updateBackToTop, { passive: true });
         if (cardsView) cardsView.addEventListener("scroll", updateBackToTop, { passive: true });
         btnBackToTop.addEventListener("click", () => {
           window.scrollTo({ top: 0, behavior: "smooth" });
