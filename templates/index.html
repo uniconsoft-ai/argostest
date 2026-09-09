@@ -2270,7 +2270,7 @@
             const jsonStr = trimmed.replace(/^data:\s*/, "");
             try {
               const evt = JSON.parse(jsonStr);
-              handleScanEvent(evt);
+              await handleScanEvent(evt);
             } catch (e) {
               console.warn("JSON parse xatosi:", e, jsonStr);
             }
@@ -2287,7 +2287,7 @@
         refreshHistoryList();
       }
 
-      function handleScanEvent(evt) {
+      async function handleScanEvent(evt) {
         if (evt.type === "status" || evt.type === "progress" || evt.type === "warning") {
           progressStatusTitle.textContent = evt.message;
           if (evt.tot && evt.tot > 0) {
