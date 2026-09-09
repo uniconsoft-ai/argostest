@@ -589,10 +589,13 @@ class DocxExporter:
 
         if not filename:
             item_id = item.get("id", "vakansiya")
-            pos = item.get("position_name", "lavozim")
-            test = item.get("test_type_name", "test")
-            safe_pos = re.sub(r'[\\/*?:"<>|]', '_', pos)[:35]
-            safe_test = re.sub(r'[\\/*?:"<>|]', '_', test)[:25]
+            pos = item.get("position_name", "lavozim") or "lavozim"
+            test = item.get("test_type_name", "test") or "test"
+            # Qat'iy sanatsiya: faqat harflar, raqamlar, pastki chiziq va chiziqcha
+            safe_pos = re.sub(r'[^a-zA-Z0-9_\u0400-\u04FF\s\-]', '_', str(pos))[:35].strip()
+            safe_pos = re.sub(r'\s+', '_', safe_pos)
+            safe_test = re.sub(r'[^a-zA-Z0-9_\u0400-\u04FF\s\-]', '_', str(test))[:25].strip()
+            safe_test = re.sub(r'\s+', '_', safe_test)
             now_stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             filename = f"{item_id}_{safe_pos}_{safe_test}_{now_stamp}.docx"
 
@@ -1267,9 +1270,137 @@ class ArgosApiClient:
 
 
 # --------------------------------------------------------------------------------------
-# 5. FLASK WEB ILOVASI (Web Server)
+# 5. XAVFSIZLIK, RATE LIMITING VA ANTI-BOT HIMOYA TIZIMI (DEFENSE IN DEPTH)
+# --------------------------------------------------------------------------------------
+
+class SecurityRateLimiter:
+    """
+    Sliding-window va Token-bucket usulida ko'p pog'onali IP-asosidagi so'rovlar nazoratchisi.
+    Brute-force, DDoS, API scraping va resurslarni suiiste'mol qilishdan himoya qiladi.
+    """
+    def __init__(self):
+        self._lock = threading.Lock()
+        self._requests: Dict[str, List[float]] = {}
+        self._banned_ips: Dict[str, float] = {}
+
+    def is_limited(self, ip: str, max_requests: int, window_seconds: int = 60, ban_seconds: int = 300) -> Tuple[bool, int]:
+        now = time.time()
+        with self._lock:
+            # Vaqtincha bloklangan IP tekshiruvi
+            if ip in self._banned_ips:
+                ban_until = self._banned_ips[ip]
+                if now < ban_until:
+                    return True, max(1, int(ban_until - now))
+                else:
+                    del self._banned_ips[ip]
+
+            # Eski vaqtlarni tozalash
+            req_list = self._requests.get(ip, [])
+            valid_reqs = [t for t in req_list if now - t < window_seconds]
+
+            # Cheklovdan oshish holati
+            if len(valid_reqs) >= max_requests:
+                # Agar limit 2 barobardan ko'p buzilsa - 5 daqiqaga to'liq bloklash
+                if len(valid_reqs) >= max_requests * 2:
+                    self._banned_ips[ip] = now + ban_seconds
+                    return True, ban_seconds
+                self._requests[ip] = valid_reqs
+                retry_after = max(1, int(window_seconds - (now - valid_reqs[0])))
+                return True, retry_after
+
+            valid_reqs.append(now)
+            self._requests[ip] = valid_reqs
+
+            # Xotirani tozalash (5000 dan oshsa)
+            if len(self._requests) > 5000:
+                self._requests = {k: v for k, v in self._requests.items() if v and (now - v[-1] < window_seconds)}
+
+            return False, 0
+
+    def reset_for_test(self):
+        with self._lock:
+            self._requests.clear()
+            self._banned_ips.clear()
+
+rate_limiter = SecurityRateLimiter()
+
+# Aniqlangan tajovuzkor AI botlar va avtomatlashtirilgan scraperlar ro'yxati
+AI_BOT_PATTERNS = [
+    r"gptbot",
+    r"chatgpt-user",
+    r"ccbot",
+    r"claudebot",
+    r"anthropic-ai",
+    r"bytespider",
+    r"petalbot",
+    r"scrapy",
+    r"dataforseobot",
+    r"amazonbot",
+    r"facebookbot",
+    r"semrushbot",
+    r"ahrefsbot",
+    r"dotbot",
+    r"turnitin",
+]
+AI_BOT_REGEX = re.compile("|".join(AI_BOT_PATTERNS), re.IGNORECASE)
+
+# Ishonchli CORS Domenlari
+TRUSTED_ORIGINS = {
+    "https://argostest.onrender.com",
+    "https://argostest.web.app",
+    "https://argostest.firebaseapp.com",
+    "http://localhost:5000",
+    "http://127.0.0.1:5000",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+}
+
+def get_client_ip() -> str:
+    """Mijozning haqiqiy IP manzilini xavfsiz aniqlash (Reverse Proxy qo'llab-quvvatlaydi)"""
+    if request.headers.get("CF-Connecting-IP"):
+        return request.headers.get("CF-Connecting-IP").split(",")[0].strip()
+    if request.headers.get("X-Forwarded-For"):
+        return request.headers.get("X-Forwarded-For").split(",")[0].strip()
+    return request.remote_addr or "127.0.0.1"
+
+
+def sanitize_safe_filename(raw_filename: str) -> Optional[str]:
+    """
+    Fayl nomini qat'iy tekshirish va path traversal hujumlarini to'sish.
+    Null byte, .. yoki noqonuniy belgilarni zararsizlantiradi.
+    """
+    if not raw_filename or "\x00" in raw_filename:
+        return None
+    unquoted = urllib.parse.unquote(raw_filename)
+    if "\x00" in unquoted or ".." in unquoted or "\\" in unquoted:
+        return None
+    base_name = os.path.basename(unquoted).strip()
+    if not base_name or base_name in (".", ".."):
+        return None
+    return base_name
+
+
+def make_error_response(message: str, status_code: int = 400, extra_headers: Optional[Dict[str, str]] = None):
+    """
+    Xavfsiz va bir xil formatdagi JSON xatolik javobi yaratuvchi yordamchi funksiya.
+    Merosiy va yangi mijozlar uchun ham 'error', ham 'message' maydonlarini taqdim etadi.
+    """
+    resp = jsonify({
+        "status": "error",
+        "message": message,
+        "error": message
+    })
+    if extra_headers:
+        for k, v in extra_headers.items():
+            resp.headers[k] = v
+    return resp, status_code
+
+
+# --------------------------------------------------------------------------------------
+# 6. FLASK WEB ILOVASI (Web Server)
 # --------------------------------------------------------------------------------------
 app = Flask(__name__, template_folder="templates", static_folder="static")
+app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024  # Maksimal so'rov hajmi: 2 MB
 api_client = ArgosApiClient()
 docx_exporter = DocxExporter(exports_dir=EXPORTS_DIR)
 
@@ -1278,16 +1409,166 @@ current_scan_lock = threading.Lock()
 stop_flag = False
 
 
+@app.before_request
+def handle_security_filtering():
+    """
+    Barcha kiruvchi so'rovlarni xavfsizlik filtri, bot tekshiruvi va rate limitingdan o'tkazish.
+    """
+    client_ip = get_client_ip()
+    path = request.path
+    method = request.method
+    ua = request.headers.get("User-Agent", "")
+
+    # 1. CORS Preflight so'rovlarini boshqarish
+    if method == "OPTIONS":
+        origin = request.headers.get("Origin", "")
+        resp = Response(status=204)
+        if origin in TRUSTED_ORIGINS:
+            resp.headers["Access-Control-Allow-Origin"] = origin
+            resp.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS, DELETE"
+            resp.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With"
+            resp.headers["Access-Control-Max-Age"] = "86400"
+        return resp
+
+    # 2. AI Bot va Tajovuzkor Scraperlarni ichki API lardan to'sish
+    if path.startswith("/api/"):
+        if ua and AI_BOT_REGEX.search(ua):
+            return make_error_response("Avtomatlashtirilgan AI botlar va scraperlar uchun API ga kirish taqiqlangan.", 403)
+
+    # 3. Ko'p pog'onali Rate Limiting (IP bo'yicha)
+    if not app.config.get("TESTING_NO_RATE_LIMIT"):
+        if path in ("/api/scan", "/api/upload-docx") or path.startswith("/api/export-single"):
+            # Og'ir amallar: minutiga 20 ta
+            limited, retry_after = rate_limiter.is_limited(client_ip, max_requests=20, window_seconds=60)
+            if limited:
+                return make_error_response("Juda ko'p so'rovlar yuborildi. Iltimos, birozdan so'ng qayta urinib ko'ring.", 429, {"Retry-After": str(retry_after)})
+        elif path == "/api/vacancies":
+            # Vakansiyalar qidirish/filtrlash: minutiga 60 ta
+            limited, retry_after = rate_limiter.is_limited(client_ip, max_requests=60, window_seconds=60)
+            if limited:
+                return make_error_response("Vakansiyalar qidiruvi limiti oshdi. Iltimos, biroz kuting.", 429, {"Retry-After": str(retry_after)})
+        elif path.startswith("/api/"):
+            # Boshqa API endpointlar: minutiga 120 ta
+            limited, retry_after = rate_limiter.is_limited(client_ip, max_requests=120, window_seconds=60)
+            if limited:
+                return make_error_response("So'rovlar limiti oshdi.", 429, {"Retry-After": str(retry_after)})
+
+
 @app.after_request
-def add_no_cache_headers(response):
+def inject_security_headers(response):
     """
-    Brauzer eski versiyadagi JS va HTMLni keshlab olmasligi uchun
-    no-cache sarlavhalarini o'rnatish.
+    To'liq HTTP Xavfsizlik sarlavhalari (Defense-in-Depth) va Kesh nazorati.
     """
+    # 1. Keshni boshqarish
     response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, max-age=0"
     response.headers["Pragma"] = "no-cache"
     response.headers["Expires"] = "0"
+
+    # 2. X-Frame-Options va Clickjacking himoyasi
+    response.headers["X-Frame-Options"] = "SAMEORIGIN"
+
+    # 3. MIME-type Sniffing himoyasi
+    response.headers["X-Content-Type-Options"] = "nosniff"
+
+    # 4. HSTS (Transport qatlamini qat'iy shifrlash)
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload"
+
+    # 5. Referrer Policy
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+
+    # 6. Permissions-Policy (Zararsiz brauzer imkoniyatlarini o'chirish)
+    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()"
+
+    # 7. Cross-Origin himoyalari
+    response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
+    response.headers["Cross-Origin-Resource-Policy"] = "same-site"
+
+    # 8. Content-Security-Policy (CSP)
+    csp_policy = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://unpkg.com https://cdnjs.cloudflare.com; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; "
+        "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; "
+        "img-src 'self' data: https: blob:; "
+        "connect-src 'self' https://vacancy.argos.uz https://hrm.argos.uz https://argostest.onrender.com https://argostest.web.app; "
+        "frame-ancestors 'self'; "
+        "form-action 'self'; "
+        "base-uri 'self'; "
+        "object-src 'none';"
+    )
+    response.headers["Content-Security-Policy"] = csp_policy
+
+    # 9. CORS boshqaruvi
+    origin = request.headers.get("Origin")
+    if origin and origin in TRUSTED_ORIGINS:
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS, DELETE"
+        response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With"
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+
+    # 10. Server bannerini yashirish
+    response.headers["Server"] = "ARGOS-SECURE-GATEWAY/2.4"
+
     return response
+
+
+# --------------------------------------------------------------------------------------
+# QAT'IY STANDART XATOLIKLAR VA ISHONCHLI QAYTARISHLAR (GENERIC ERROR HANDLERS)
+# --------------------------------------------------------------------------------------
+@app.errorhandler(400)
+def handle_400(err):
+    return make_error_response("Noto'g'ri so'rov yuborildi.", 400)
+
+@app.errorhandler(403)
+def handle_403(err):
+    return make_error_response("Ushbu amalni bajarish uchun ruxsat yo'q.", 403)
+
+@app.errorhandler(404)
+def handle_404(err):
+    if request.path.startswith("/api/"):
+        return make_error_response("So'ralgan resurs topilmadi.", 404)
+    return render_template("index.html"), 404
+
+@app.errorhandler(405)
+def handle_405(err):
+    return make_error_response("Ruxsat etilmagan HTTP metodi.", 405)
+
+@app.errorhandler(413)
+def handle_413(err):
+    return make_error_response("Fayl yoki so'rov hajmi juda katta (maksimal 2MB).", 413)
+
+@app.errorhandler(429)
+def handle_429(err):
+    return make_error_response("Juda ko'p so'rovlar yuborildi. Iltimos, biroz kuting.", 429)
+
+@app.errorhandler(500)
+def handle_500(err):
+    return make_error_response("Ichki server xatoligi yuz berdi.", 500)
+
+
+@app.route("/robots.txt")
+def robots_txt():
+    """Qidiruv botlari va AI crawlerlar uchun xavfsizlik qoidalari"""
+    rules = (
+        "User-agent: *\n"
+        "Disallow: /api/\n"
+        "Disallow: /exports/\n"
+        "Allow: /\n"
+        "Allow: /static/\n\n"
+        "User-agent: GPTBot\n"
+        "Disallow: /\n\n"
+        "User-agent: ChatGPT-User\n"
+        "Disallow: /\n\n"
+        "User-agent: CCBot\n"
+        "Disallow: /\n\n"
+        "User-agent: ClaudeBot\n"
+        "Disallow: /\n\n"
+        "User-agent: Bytespider\n"
+        "Disallow: /\n\n"
+        "User-agent: PetalBot\n"
+        "Disallow: /\n"
+    )
+    return Response(rules, mimetype="text/plain")
 
 
 @app.route("/")
@@ -1702,11 +1983,16 @@ def stop_scan():
 def preview_document(filename):
     """
     Word (.docx) hujjatini Mammoth orqali chiroyli HTML ko'rinishida qaytaradi.
+    Path traversal va null-byte hujumlariga qarshi 100% himoyalangan.
     """
-    safe_name = os.path.basename(urllib.parse.unquote(filename))
-    filepath = os.path.join(EXPORTS_DIR, safe_name)
-    if not os.path.exists(filepath):
-        return jsonify({"error": "Fayl topilmadi"}), 404
+    safe_name = sanitize_safe_filename(filename)
+    if not safe_name:
+        return jsonify({"status": "error", "message": "Fayl topilmadi"}), 404
+
+    filepath = os.path.abspath(os.path.join(EXPORTS_DIR, safe_name))
+    exports_abs = os.path.abspath(EXPORTS_DIR)
+    if not filepath.startswith(exports_abs) or not os.path.exists(filepath):
+        return jsonify({"status": "error", "message": "Fayl topilmadi"}), 404
 
     try:
         with open(filepath, "rb") as docx_file:
@@ -1719,18 +2005,24 @@ def preview_document(filename):
                 "messages": [str(m) for m in result.messages]
             })
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"status": "error", "message": "Hujjatni ochishda xatolik yuz berdi"}), 500
 
 
 @app.route("/api/docx-raw/<path:filename>")
 def get_docx_raw(filename):
     """
     Word (.docx) faylini client-side docx-preview.js rendereri uchun jo'natadi.
+    Path traversal himoyasi bilan.
     """
-    safe_name = os.path.basename(urllib.parse.unquote(filename))
-    filepath = os.path.join(EXPORTS_DIR, safe_name)
-    if not os.path.exists(filepath):
+    safe_name = sanitize_safe_filename(filename)
+    if not safe_name:
         return "Fayl topilmadi", 404
+
+    filepath = os.path.abspath(os.path.join(EXPORTS_DIR, safe_name))
+    exports_abs = os.path.abspath(EXPORTS_DIR)
+    if not filepath.startswith(exports_abs) or not os.path.exists(filepath):
+        return "Fayl topilmadi", 404
+
     return send_file(
         filepath,
         mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -1741,11 +2033,16 @@ def get_docx_raw(filename):
 
 @app.route("/api/download/<path:filename>")
 def download_document(filename):
-    """Word (.docx) faylini yuklab olish"""
-    safe_name = os.path.basename(urllib.parse.unquote(filename))
-    filepath = os.path.join(EXPORTS_DIR, safe_name)
-    if not os.path.exists(filepath):
+    """Word (.docx) faylini yuklab olish (Path traversal himoyalangan)"""
+    safe_name = sanitize_safe_filename(filename)
+    if not safe_name:
         return "Fayl topilmadi", 404
+
+    filepath = os.path.abspath(os.path.join(EXPORTS_DIR, safe_name))
+    exports_abs = os.path.abspath(EXPORTS_DIR)
+    if not filepath.startswith(exports_abs) or not os.path.exists(filepath):
+        return "Fayl topilmadi", 404
+
     return send_from_directory(EXPORTS_DIR, safe_name, as_attachment=True, download_name=safe_name)
 
 
@@ -1758,25 +2055,25 @@ def upload_docx_api():
     """
     try:
         if "file" not in request.files:
-            return jsonify({"error": "Fayl yuborilmadi"}), 400
+            return make_error_response("Fayl yuborilmadi", 400)
 
         file = request.files["file"]
         if not file or file.filename == "":
-            return jsonify({"error": "Fayl tanlanmadi"}), 400
+            return make_error_response("Fayl tanlanmadi", 400)
 
         raw_name = file.filename
         clean_name = os.path.basename(raw_name).strip()
-        clean_name = re.sub(r'[\\/*?:"<>|]', "", clean_name)
+        clean_name = re.sub(r'[^a-zA-Z0-9_\u0400-\u04FF\s\.\-]', '_', clean_name)
         
         # 1. Format tekshiruvi: Faqat .docx qabul qilinadi
         if not clean_name.lower().endswith(".docx"):
-            return jsonify({"error": "Faqat .docx formatidagi Word hujjatlari qabul qilinadi"}), 400
+            return make_error_response("Faqat .docx formatidagi Word hujjatlari qabul qilinadi", 400)
 
         # 2. Fayl boshini tekshirish (Magic bytes: PK\x03\x04 - ZIP/DOCX standarti)
         header = file.read(4)
         file.seek(0)
         if header != b"PK\x03\x04":
-            return jsonify({"error": "Yuklangan fayl haqiqiy Word (.docx) hujjati emas"}), 400
+            return make_error_response("Yuklangan fayl haqiqiy Word (.docx) hujjati emas", 400)
 
         target_path = os.path.join(EXPORTS_DIR, clean_name)
         if os.path.exists(target_path):
@@ -1793,7 +2090,7 @@ def upload_docx_api():
                 os.remove(target_path)
             except OSError:
                 pass
-            return jsonify({"error": "Word fayli shikastlangan yoki yaroqsiz"}), 400
+            return make_error_response("Word fayli shikastlangan yoki yaroqsiz", 400)
 
         stat = os.stat(target_path)
         size_kb = round(stat.st_size / 1024, 1)
@@ -1813,19 +2110,20 @@ def upload_docx_api():
         except Exception:
             pass
 
+        quoted_clean_name = urllib.parse.quote(clean_name)
         return jsonify({
             "status": "ok",
             "filename": clean_name,
             "size": f"{size_kb} KB",
             "date": mtime,
             "count": "Yuklangan Word",
-            "preview_url": f"/api/preview/{clean_name}",
-            "docx_url": f"/api/docx-raw/{clean_name}",
-            "download_url": f"/api/download/{clean_name}",
+            "preview_url": f"/api/preview/{quoted_clean_name}",
+            "docx_url": f"/api/docx-raw/{quoted_clean_name}",
+            "download_url": f"/api/download/{quoted_clean_name}",
             "message": f'"{clean_name}" Word tarixiga muvaffaqiyatli saqlandi!'
         })
     except Exception as e:
-        return jsonify({"error": f"Faylni Word tarixiga saqlashda xatolik: {str(e)}"}), 500
+        return make_error_response("Faylni Word tarixiga saqlashda xatolik yuz berdi", 500)
 
 
 @app.route("/api/history")
@@ -1891,20 +2189,25 @@ def get_history():
 @app.route("/api/vacancies-by-doc/<path:filename>")
 def get_vacancies_by_doc(filename):
     """Word hujjatiga tegishli vakansiya kartalarini qaytaradi"""
-    safe_name = os.path.basename(filename)
-    meta_path = os.path.join(EXPORTS_DIR, safe_name + ".json")
-    if os.path.exists(meta_path):
-        try:
-            with open(meta_path, "r", encoding="utf-8") as f:
-                content = json.load(f)
-                if isinstance(content, list):
-                    return jsonify(content)
-                elif isinstance(content, dict) and "vacancies" in content:
-                    return jsonify(content["vacancies"])
-                return jsonify([])
-        except Exception as e:
-            return jsonify({"error": str(e)}), 500
-    return jsonify([])
+    safe_name = sanitize_safe_filename(filename)
+    if not safe_name:
+        return jsonify([])
+
+    meta_path = os.path.abspath(os.path.join(EXPORTS_DIR, safe_name + ".json"))
+    exports_abs = os.path.abspath(EXPORTS_DIR)
+    if not meta_path.startswith(exports_abs) or not os.path.exists(meta_path):
+        return jsonify([])
+
+    try:
+        with open(meta_path, "r", encoding="utf-8") as f:
+            content = json.load(f)
+            if isinstance(content, list):
+                return jsonify(content)
+            elif isinstance(content, dict) and "vacancies" in content:
+                return jsonify(content["vacancies"])
+            return jsonify([])
+    except Exception:
+        return jsonify([])
 
 
 @app.route("/api/export-single/<int:vac_id>", methods=["POST"])
@@ -1915,7 +2218,7 @@ def export_single_vacancy_api(vac_id):
     try:
         detail = api_client.get_vacancy_detail(vac_id)
         if not detail:
-            return jsonify({"error": f"Vakansiya #{vac_id} topilmadi"}), 404
+            return make_error_response(f"Vakansiya #{vac_id} topilmadi", 404)
         
         filepath = docx_exporter.export_single_vacancy(detail)
         fname = os.path.basename(filepath)
@@ -1941,10 +2244,10 @@ def export_single_vacancy_api(vac_id):
         })
     except requests.exceptions.HTTPError as http_err:
         if http_err.response is not None and http_err.response.status_code == 404:
-            return jsonify({"error": f"Vakansiya #{vac_id} Argos portalida topilmadi yoki muddati o'tgan"}), 404
-        return jsonify({"error": f"Argos serveri xatosi: {str(http_err)}"}), 502
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+            return make_error_response(f"Vakansiya #{vac_id} topilmadi yoki muddati o'tgan", 404)
+        return make_error_response("Argos serveri xatosi yuz berdi", 502)
+    except Exception:
+        return make_error_response("Vakansiyani eksport qilishda xatolik yuz berdi", 500)
 
 
 @app.route("/api/history/<path:filename>", methods=["DELETE"])
@@ -1952,7 +2255,7 @@ def delete_history_document(filename):
     """
     Foydalanuvchi talabi bo'yicha hujjatlarni o'chirish taqiqlangan (arxiv saqlanadi).
     """
-    return jsonify({"error": "Word tarixi hujjatlarini o'chirish taqiqlangan. Barcha hujjatlar arxivda saqlanadi."}), 403
+    return make_error_response("Word tarixi hujjatlarini o'chirish taqiqlangan. Barcha hujjatlar arxivda saqlanadi.", 403)
 
 
 

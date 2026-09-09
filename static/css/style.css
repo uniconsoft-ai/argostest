@@ -1055,3 +1055,24 @@ body.dark .history-item:hover,
   box-shadow: 0 4px 12px rgba(162, 173, 232, 0.2) !important;
 }
 
+/* ==========================================================================
+   FRONTEND SECURITY & DEFENSE STYLES
+   ========================================================================== */
+img, svg, .select-none, .btn-action, button, [role="button"] {
+  -webkit-user-drag: none;
+  -moz-user-drag: none;
+  user-drag: none;
+}
+
+input, textarea, select, [contenteditable="true"] {
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+  user-select: text !important;
+}
+
+.protected-ui {
+  -webkit-touch-callout: none;
+}
+
+

@@ -2968,5 +2968,77 @@
     </div>
 
   </div>
+
+  <!-- ======================================================================== -->
+  <!-- 6. FRONTEND DEFENSE & SECURITY LAYER (ANTI-TAMPER & CONSOLE BANNER) -->
+  <!-- ======================================================================== -->
+  <script>
+    (function() {
+      "use strict";
+
+      // 1. DevTools Console Security Warning Banner (Self-XSS Protection)
+      try {
+        const titleStyle = "color: #dc2626; font-size: 22px; font-weight: bold; text-shadow: 1px 1px 0px black;";
+        const subStyle = "color: #2563eb; font-size: 13px; font-weight: bold;";
+        const textStyle = "color: #475569; font-size: 12px; line-height: 1.5;";
+        
+        console.log("%c🛑 DIQQAT! XAVFSIZLIK OGOHLANTIRISHI", titleStyle);
+        console.log("%cARGOS TEST YAGONA PORTAL WEB ILOVASI", subStyle);
+        console.log(
+          "%cBu brauzer konsoli faqat dasturchilar uchun mo'ljallangan.\n" +
+          "Agar kimdir sizga bu yerga begona JavaScript kodlarini nusxalab qo'yishni (paste) so'ragan bo'lsa, " +
+          "bu 'Self-XSS' firibgarlik hujumi bo'lishi mumkin. Begona skriptlarni bu yerga kiritmang!",
+          textStyle
+        );
+      } catch (e) {}
+
+      // 2. Fail-Safe Shortcut Deterrence (View-Source & DevTools Shortcut Interception)
+      // Form elementlari (input, textarea, select) va standart matn yozish doim 100% ishlaydi
+      window.addEventListener("keydown", function(e) {
+        const target = e.target;
+        const isInput = target && (
+          target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.tagName === "SELECT" ||
+          target.isContentEditable
+        );
+
+        if (!isInput) {
+          // F12
+          if (e.key === "F12" || e.keyCode === 123) {
+            e.preventDefault();
+            return false;
+          }
+          // Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C
+          if (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "i" || e.key === "J" || e.key === "j" || e.key === "C" || e.key === "c")) {
+            e.preventDefault();
+            return false;
+          }
+          // Ctrl+U (View Source), Ctrl+S (Save Page)
+          if (e.ctrlKey && !e.shiftKey && (e.key === "u" || e.key === "U" || e.key === "s" || e.key === "S")) {
+            e.preventDefault();
+            return false;
+          }
+        }
+      }, { passive: false });
+
+      // 3. Subtle Non-Intrusive Security Logger (Zero loops, zero freezing)
+      let devtoolsOpen = false;
+      const element = new Image();
+      Object.defineProperty(element, "id", {
+        get: function() {
+          if (!devtoolsOpen) {
+            devtoolsOpen = true;
+            console.log("%c[ARGOS-SECURITY] Himoyalangan sessiya faol holatda.", "color: #16a34a; font-weight: bold;");
+          }
+          return "";
+        }
+      });
+      try {
+        console.debug(element);
+      } catch (e) {}
+
+    })();
+  </script>
 </body>
 </html>
