@@ -19,6 +19,8 @@ import json
 import glob
 import urllib.parse
 import threading
+import uuid
+import zipfile
 from datetime import datetime
 from typing import Dict, Any, List, Optional, Tuple, Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -129,6 +131,32 @@ UZBEKISTAN_REGIONS = [
     {"value": "19", "name": "Surxondaryo viloyati", "code": "1722"},
 ]
 
+REGION_SOATO_TO_VALUE: Dict[str, str] = {r["code"]: r["value"] for r in UZBEKISTAN_REGIONS}
+REGION_NAME_TO_VALUE: Dict[str, str] = {r["name"].lower(): r["value"] for r in UZBEKISTAN_REGIONS}
+
+def normalize_region_id(val: Optional[Any]) -> Optional[str]:
+    """
+    Viloyat qiymatini (SOATO kodi, tartib raqami yoki nomi) Argos qabul qiladigan qiymatga normallashtiradi.
+    """
+    if val is None:
+        return None
+    s = str(val).strip()
+    if not s or s in ("0", "Barchasi", "barchasi", "null", "none"):
+        return None
+    if s in REGION_SOATO_TO_VALUE:
+        return REGION_SOATO_TO_VALUE[s]
+    s_low = s.lower()
+    if s_low in REGION_NAME_TO_VALUE:
+        return REGION_NAME_TO_VALUE[s_low]
+    for r in UZBEKISTAN_REGIONS:
+        if r["value"] == s:
+            return s
+    return s
+
+# Faol skanerlash sessiyalarini boshqarish lug'ati (Thread-safe)
+active_scans: Dict[str, threading.Event] = {}
+scans_lock = threading.Lock()
+
 DEFAULT_HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -169,23 +197,33 @@ def format_date_str(date_val: Any) -> str:
 
 
 def format_salary(salary_val: Any) -> str:
-    if not salary_val or salary_val == 0:
+    if salary_val is None:
         return "Ko'rsatilmagan"
     try:
         val = int(salary_val)
+        if val <= 0:
+            return "Ko'rsatilmagan"
         return f"{val:,} UZS".replace(",", " ")
     except (ValueError, TypeError):
-        return f"{salary_val} UZS"
+        s = str(salary_val).strip()
+        if not s or s in ("0", "none", "null", "-"):
+            return "Ko'rsatilmagan"
+        return f"{s} UZS"
 
 
 def format_salary_display(salary_val: Any) -> str:
-    if not salary_val or salary_val == 0:
+    if salary_val is None:
         return "Shtat jadvali bo'yicha"
     try:
         val = int(salary_val)
+        if val <= 0:
+            return "Shtat jadvali bo'yicha"
         return f"{val:,} UZS".replace(",", " ")
     except (ValueError, TypeError):
-        return f"{salary_val} UZS"
+        s = str(salary_val).strip()
+        if not s or s in ("0", "none", "null", "-"):
+            return "Shtat jadvali bo'yicha"
+        return f"{s} UZS"
 
 
 UZ_MONTHS = {
@@ -836,9 +874,11 @@ class ArgosApiClient:
             self._load_districts()
         if not self._districts_cache:
             return []
+        norm_val = normalize_region_id(region_value)
         results = []
         for d in self._districts_cache:
-            if str(d.get("rootCode")) == str(region_value):
+            r_code = str(d.get("rootCode"))
+            if r_code == str(region_value) or (norm_val and r_code == norm_val):
                 name = d.get("nameUz") or d.get("label")
                 val = d.get("value")
                 if name and val and name != "Tanlang":
@@ -1027,7 +1067,9 @@ class ArgosApiClient:
 
                 return detail
             except Exception:
-                # Agar detail so'rovi uzilsa ham asosiy ro'yxat ma'lumotini yo'qotmaymiz
+                # Agar filter tanlangan bo'lsa va tekshirib bo'lmasa, uni filtrlangan ro'yxatga qo'shmaymiz
+                if has_filter:
+                    return None
                 return item
 
         with ThreadPoolExecutor(max_workers=10) as executor:
@@ -1278,11 +1320,12 @@ def get_vacancies():
         "organizationTin": None
     }
 
-    if region_val and region_val not in ("0", "Barchasi", ""):
+    norm_reg = normalize_region_id(region_val)
+    if norm_reg:
         try:
-            payload["regionSoato"] = int(region_val)
+            payload["regionSoato"] = int(norm_reg)
         except ValueError:
-            payload["regionSoato"] = region_val
+            payload["regionSoato"] = norm_reg
 
     if district_val and district_val not in ("0", "Barchasi", ""):
         try:
@@ -1430,11 +1473,12 @@ def scan_vacancies():
         # Ro'yxat parametrlari
         if keyword:
             parsed_params["search"] = keyword
-        if region_val and region_val not in ("0", "Barchasi"):
+        norm_reg = normalize_region_id(region_val)
+        if norm_reg:
             try:
-                parsed_params["regionSoato"] = int(region_val)
+                parsed_params["regionSoato"] = int(norm_reg)
             except ValueError:
-                parsed_params["regionSoato"] = region_val
+                parsed_params["regionSoato"] = norm_reg
         if district_val and district_val not in ("0", "Barchasi"):
             try:
                 parsed_params["districtSoato"] = int(district_val)
@@ -1488,8 +1532,13 @@ def scan_vacancies():
         def on_progress(evt_data):
             event_queue.append(evt_data)
 
+        scan_id = str(uuid.uuid4())
+        local_stop = threading.Event()
+        with scans_lock:
+            active_scans[scan_id] = local_stop
+
         def should_stop():
-            return stop_flag
+            return local_stop.is_set() or stop_flag
 
         def _run_search():
             nonlocal collected_items
@@ -1504,43 +1553,48 @@ def scan_vacancies():
             except Exception as e:
                 event_queue.append({"type": "error", "message": str(e)})
 
-        search_thread = threading.Thread(target=_run_search, daemon=True)
-        search_thread.start()
+        try:
+            search_thread = threading.Thread(target=_run_search, daemon=True)
+            search_thread.start()
 
-        while search_thread.is_alive() or event_queue:
-            while event_queue:
-                evt = event_queue.pop(0)
-                yield f"data: {json.dumps(evt)}\n\n"
-            time.sleep(0.08)
+            while search_thread.is_alive() or event_queue:
+                while event_queue:
+                    evt = event_queue.pop(0)
+                    yield f"data: {json.dumps(evt)}\n\n"
+                time.sleep(0.08)
 
-        if not collected_items:
-            yield f"data: {json.dumps({'type': 'done_empty', 'message': 'Belgilangan shartlarga mos vakansiyalar topilmadi.'})}\n\n"
-            return
+            if not collected_items:
+                yield f"data: {json.dumps({'type': 'done_empty', 'message': 'Belgilangan shartlarga mos vakansiyalar topilmadi.'})}\n\n"
+                return
 
-        yield f"data: {json.dumps({'type': 'status', 'message': f'Word (.docx) hujjati yaratilmoqda ({len(collected_items):,} ta vakansiya)...', 'cur': len(collected_items), 'tot': len(collected_items)})}\n\n"
+            yield f"data: {json.dumps({'type': 'status', 'message': f'Word (.docx) hujjati yaratilmoqda ({len(collected_items):,} ta vakansiya)...', 'cur': len(collected_items), 'tot': len(collected_items)})}\n\n"
 
-        doc_result = {}
-        def _build_doc():
-            try:
-                fp = docx_exporter.export_multiple_vacancies(collected_items)
-                doc_result["filepath"] = fp
-            except Exception as ex:
-                doc_result["error"] = str(ex)
+            doc_result = {}
+            def _build_doc():
+                try:
+                    fp = docx_exporter.export_multiple_vacancies(collected_items)
+                    doc_result["filepath"] = fp
+                except Exception as ex:
+                    doc_result["error"] = str(ex)
 
-        doc_thread = threading.Thread(target=_build_doc, daemon=True)
-        doc_thread.start()
+            doc_thread = threading.Thread(target=_build_doc, daemon=True)
+            doc_thread.start()
 
-        while doc_thread.is_alive():
-            yield ": ping\n\n"
-            time.sleep(0.5)
+            while doc_thread.is_alive():
+                yield ": ping\n\n"
+                time.sleep(0.5)
 
-        if "error" in doc_result:
-            yield f"data: {json.dumps({'type': 'error', 'message': doc_result['error']})}\n\n"
-            return
+            if "error" in doc_result:
+                yield f"data: {json.dumps({'type': 'error', 'message': doc_result['error']})}\n\n"
+                return
 
-        filepath = doc_result.get("filepath")
-        fname = os.path.basename(filepath) if filepath else ""
-        yield f"data: {json.dumps({'type': 'done', 'filename': fname, 'count': len(collected_items), 'docx_url': f'/api/docx-raw/{fname}', 'preview_url': f'/api/preview/{fname}', 'message': f'Muvaffaqiyatli saqlandi: {len(collected_items):,} ta vakansiya'})}\n\n"
+            filepath = doc_result.get("filepath")
+            fname = os.path.basename(filepath) if filepath else ""
+            yield f"data: {json.dumps({'type': 'done', 'filename': fname, 'count': len(collected_items), 'docx_url': f'/api/docx-raw/{fname}', 'preview_url': f'/api/preview/{fname}', 'message': f'Muvaffaqiyatli saqlandi: {len(collected_items):,} ta vakansiya'})}\n\n"
+        finally:
+            local_stop.set()
+            with scans_lock:
+                active_scans.pop(scan_id, None)
 
     return Response(event_stream(), mimetype="text/event-stream")
 
@@ -1550,6 +1604,9 @@ def stop_scan():
     """Jarayonni to'xtatish"""
     global stop_flag
     stop_flag = True
+    with scans_lock:
+        for evt in list(active_scans.values()):
+            evt.set()
     return jsonify({"status": "ok", "message": "To'xtatish so'rovi qabul qilindi"})
 
 
@@ -1605,6 +1662,7 @@ def upload_docx_api():
     """
     Foydalanuvchi Word hujjati bo'limiga yuklagan yoki tanlagan .docx faylni qabul qilib,
     darhol EXPORTS_DIR (Word tarixi) ga saqlaydi va ro'yxatga qo'shadi.
+    Fayl turi, hajmi va xavfsizligini 100% tekshiradi.
     """
     try:
         if "file" not in request.files:
@@ -1617,8 +1675,16 @@ def upload_docx_api():
         raw_name = file.filename
         clean_name = os.path.basename(raw_name).strip()
         clean_name = re.sub(r'[\\/*?:"<>|]', "", clean_name)
+        
+        # 1. Format tekshiruvi: Faqat .docx qabul qilinadi
         if not clean_name.lower().endswith(".docx"):
-            clean_name += ".docx"
+            return jsonify({"error": "Faqat .docx formatidagi Word hujjatlari qabul qilinadi"}), 400
+
+        # 2. Fayl boshini tekshirish (Magic bytes: PK\x03\x04 - ZIP/DOCX standarti)
+        header = file.read(4)
+        file.seek(0)
+        if header != b"PK\x03\x04":
+            return jsonify({"error": "Yuklangan fayl haqiqiy Word (.docx) hujjati emas"}), 400
 
         target_path = os.path.join(EXPORTS_DIR, clean_name)
         if os.path.exists(target_path):
@@ -1629,9 +1695,31 @@ def upload_docx_api():
 
         file.save(target_path)
 
+        # 3. Fayl butunligini tekshirish (ZIP/DOCX arxivi sifatida ochilishi)
+        if not zipfile.is_zipfile(target_path):
+            try:
+                os.remove(target_path)
+            except OSError:
+                pass
+            return jsonify({"error": "Word fayli shikastlangan yoki yaroqsiz"}), 400
+
         stat = os.stat(target_path)
         size_kb = round(stat.st_size / 1024, 1)
         mtime = datetime.fromtimestamp(stat.st_mtime).strftime("%d.%m.%Y %H:%M:%S")
+
+        # Metadata JSON fayli yaratish
+        try:
+            meta_path = target_path + ".json"
+            meta_payload = {
+                "filename": clean_name,
+                "count": "Yuklangan Word",
+                "date": mtime,
+                "size_kb": size_kb
+            }
+            with open(meta_path, "w", encoding="utf-8") as mf:
+                json.dump(meta_payload, mf, ensure_ascii=False, indent=2)
+        except Exception:
+            pass
 
         return jsonify({
             "status": "ok",
@@ -1657,18 +1745,38 @@ def get_history():
     items = []
     for f in files:
         fname = os.path.basename(f)
-        stat = os.stat(f)
-        size_kb = round(stat.st_size / 1024, 1)
-        mtime = datetime.fromtimestamp(stat.st_mtime).strftime("%d.%m.%Y %H:%M:%S")
+        try:
+            stat = os.stat(f)
+            size_kb = round(stat.st_size / 1024, 1)
+            mtime = datetime.fromtimestamp(stat.st_mtime).strftime("%d.%m.%Y %H:%M:%S")
+        except OSError:
+            continue
 
-        # Nomidan sonini topish
-        m_cnt = re.search(r'_(\d+)_ta', fname)
-        if m_cnt:
-            count_str = f"{m_cnt.group(1)} ta"
-        elif "_1_ta" in fname or "Vakansiya_" in fname or "vakansiya_" in fname:
-            count_str = "1 ta vakansiya"
-        else:
-            count_str = "Word hujjati"
+        # Metadata faylidan aniq sonni olish
+        meta_path = f + ".json"
+        count_str = None
+        if os.path.exists(meta_path):
+            try:
+                with open(meta_path, "r", encoding="utf-8") as mf:
+                    meta_content = json.load(mf)
+                    if isinstance(meta_content, list):
+                        c = len(meta_content)
+                        count_str = "1 ta vakansiya" if c == 1 else f"{c:,} ta".replace(",", " ")
+                    elif isinstance(meta_content, dict) and "count" in meta_content:
+                        c_val = meta_content["count"]
+                        count_str = f"{c_val} ta" if isinstance(c_val, int) else str(c_val)
+            except Exception:
+                pass
+
+        if not count_str:
+            # Nomidan sonini topish
+            m_cnt = re.search(r'_(\d+)_ta', fname)
+            if m_cnt:
+                count_str = f"{m_cnt.group(1)} ta"
+            elif "_1_ta" in fname or "Vakansiya_" in fname or "vakansiya_" in fname or re.match(r'^\d+_', fname):
+                count_str = "1 ta vakansiya"
+            else:
+                count_str = "Word hujjati"
 
         items.append({
             "filename": fname,
@@ -1690,7 +1798,12 @@ def get_vacancies_by_doc(filename):
     if os.path.exists(meta_path):
         try:
             with open(meta_path, "r", encoding="utf-8") as f:
-                return jsonify(json.load(f))
+                content = json.load(f)
+                if isinstance(content, list):
+                    return jsonify(content)
+                elif isinstance(content, dict) and "vacancies" in content:
+                    return jsonify(content["vacancies"])
+                return jsonify([])
         except Exception as e:
             return jsonify({"error": str(e)}), 500
     return jsonify([])
@@ -1720,6 +1833,10 @@ def export_single_vacancy_api(vac_id):
             "card": card_item,
             "message": f"Vakansiya #{vac_id} Word hujjati yaratildi!"
         })
+    except requests.exceptions.HTTPError as http_err:
+        if http_err.response is not None and http_err.response.status_code == 404:
+            return jsonify({"error": f"Vakansiya #{vac_id} Argos portalida topilmadi yoki muddati o'tgan"}), 404
+        return jsonify({"error": f"Argos serveri xatosi: {str(http_err)}"}), 502
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

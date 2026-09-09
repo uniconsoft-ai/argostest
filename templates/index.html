@@ -35,7 +35,7 @@
   </script>
 
   <!-- Maxsus Uslublar -->
-  <link rel="stylesheet" href="/static/css/style.css?v=2.0.5">
+  <link rel="stylesheet" href="/static/css/style.css?v=2.1.0">
 
   <!-- Mahaliy Word Rendering Kutubxonalari (Oflayn) -->
   <script src="/static/js/jszip.min.js"></script>
@@ -2110,7 +2110,7 @@
       }
 
       function handleScanEvent(evt) {
-        if (evt.type === "status") {
+        if (evt.type === "status" || evt.type === "progress" || evt.type === "warning") {
           progressStatusTitle.textContent = evt.message;
           if (evt.tot && evt.tot > 0) {
             const pct = Math.min(100, Math.round((evt.cur / evt.tot) * 100));
@@ -2204,17 +2204,24 @@
         } else if (evt.type === "stopped") {
           resetScanButtons();
           progressStatusTitle.textContent = evt.message;
+          setTimeout(() => {
+            progressCard.classList.add("hidden");
+          }, 4000);
         } else if (evt.type === "error") {
           resetScanButtons();
           progressStatusTitle.textContent = "Xatolik: " + evt.message;
           showNotification("Xatolik yuz berdi", evt.message, "error");
+          setTimeout(() => {
+            progressCard.classList.add("hidden");
+          }, 5000);
         }
       }
     }
 
     async function stopScan() {
+      if (btnStopTop) btnStopTop.disabled = true;
       resetScanButtons();
-      progressStatusTitle.textContent = "Jarayon to'xtatildi.";
+      progressStatusTitle.textContent = "Jarayon to'xtatilmoqda...";
       try {
         if (scanController) scanController.abort();
         await fetch("/api/stop", { method: "POST" });
