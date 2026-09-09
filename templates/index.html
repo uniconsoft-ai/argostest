@@ -1644,17 +1644,19 @@
             if (!res.ok || data.error) {
               throw new Error(data.error || "Word yaratib bo'lmadi");
             }
-            // Word ko'ruvchini orqa fonda tayyorlash
+            // Word ko'ruvchini tayyorlash va Word tabiga o'tish
             loadDocumentByName(data.filename, {
               count: "1 ta vakansiya",
               meta: `${data.date || ''} • ${data.size || ''}`
             });
             tabDocxBadge.classList.remove("hidden");
+            switchWorkspaceTab("docx");
 
-            // DOIM yaratilgandan so'ng darhol Word tarixiga o'tkazish
-            await openHistoryDrawer(data.filename);
+            // Word tarixini yangilash (arxivga saqlangan)
+            await refreshHistoryList();
+            updateHistoryBadges(cachedHistoryItems.length, true);
 
-            showNotification("Word tarixiga o'tkazildi! 📚", `"${data.filename}" muvaffaqiyatli yaratildi va Word tarixiga o'tkazildi.`, "success");
+            showNotification("Word tayyor! ✅", `"${data.filename}" yaratildi va Word tarixiga (arxivga) saqlandi.`, "success");
           } catch (err) {
             showNotification("Eksport xatosi", err.message, "error");
           } finally {
@@ -2000,8 +2002,9 @@
         console.warn("Faylni serverga yuklashda ogohlantirish:", uploadErr);
       }
 
-      // 2. Darhol Word tarixiga o'tkazish va yangi hujjatni ko'rsatish
-      await openHistoryDrawer(serverFilename);
+      // 2. Word tarixini yangilash (arxivga saqlangan)
+      await refreshHistoryList();
+      updateHistoryBadges(cachedHistoryItems.length, true);
 
       // 3. Ekranda Word hujjatini to'liq ko'rsatish
       await renderDocxFromBlob(file, serverFilename, {
@@ -2012,7 +2015,7 @@
       tabDocxBadge.classList.remove("hidden");
       tabDocxBadge.textContent = "Tayyor";
 
-      showNotification("Word tarixiga olindi! 📚", `"${serverFilename}" Word tarixiga muvaffaqiyatli saqlandi va ochildi.`, "success");
+      showNotification("Word tarixiga olindi! 📚", `"${serverFilename}" Word tarixiga (arxivga) muvaffaqiyatli saqlandi va ochildi.`, "success");
     }
 
     // Kompyuterdan mahalliy docx ochish
@@ -2373,10 +2376,11 @@
             meta: `Yangi yaratildi (${evt.filename})`
           });
 
-          // DOIM Word yaratilganda srazi Word tarixiga o'tkazish
-          await openHistoryDrawer(evt.filename);
+          // Backendda arxivga to'liq saqlangan, tarix ro'yxati va nishonlarini yangilash (modal auto ochilmaydi)
+          await refreshHistoryList();
+          updateHistoryBadges(cachedHistoryItems.length, true);
 
-          showNotification("Word tarixiga o'tkazildi! 📚", `Jami ${countDisplay} ta vakansiya Word hujjati sifatida saqlandi.`, "success");
+          showNotification("Word arxivga saqlandi! 📚", `Jami ${countDisplay} ta vakansiya Word tarixi (arxiv)ga muvaffaqiyatli saqlandi.`, "success");
         } else if (evt.type === "done_empty") {
           resetScanButtons();
           progressBar.style.width = "100%";
