@@ -35,7 +35,7 @@
   </script>
 
   <!-- Maxsus Uslublar -->
-  <link rel="stylesheet" href="/static/css/style.css?v=2.0.4">
+  <link rel="stylesheet" href="/static/css/style.css?v=2.0.5">
 
   <!-- Mahaliy Word Rendering Kutubxonalari (Oflayn) -->
   <script src="/static/js/jszip.min.js"></script>
@@ -292,7 +292,7 @@
     <!-- ====================================================================== -->
     <!-- CHAP USTUN: FILTRLAR PANELI (vacancy.argos.uz 100% rasmiy ko'rinish) -->
     <!-- ====================================================================== -->
-    <aside id="filter-sidebar" class="w-full lg:w-[275px] xl:w-[290px] shrink-0 sticky lg:top-20 z-30 transition-all">
+    <aside id="filter-sidebar" class="lg:block w-full lg:w-[275px] xl:w-[290px] shrink-0 sticky lg:top-20 z-30 transition-all">
       <div class="argos-aside max-h-none lg:max-h-[calc(100vh-6rem)] overflow-y-auto custom-sidebar-scroll">
         
         <!-- 1. Hudud & Tuman/shahar -->
@@ -1954,7 +1954,6 @@
     const btnFullscreen = document.getElementById("btn-fullscreen");
     const btnFullscreenIcon = document.getElementById("btn-fullscreen-icon");
     const btnFullscreenText = document.getElementById("btn-fullscreen-text");
-    const mainWorkspaceSection = docxContainer ? docxContainer.closest("section") : null;
 
     if (btnFullscreen && mainWorkspaceSection) {
       btnFullscreen.addEventListener("click", () => {
