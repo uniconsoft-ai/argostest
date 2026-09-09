@@ -496,6 +496,8 @@ html {
   border: 1px solid rgba(121, 131, 142, 0.18);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: visible !important;
+  max-height: none !important;
 }
 
 .dark .argos-aside {
