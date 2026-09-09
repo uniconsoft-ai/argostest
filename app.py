@@ -1132,6 +1132,159 @@ def get_test_types():
     return jsonify(options)
 
 
+# In-memory kesh (TTL: 60 soniya)
+_vacancies_cache: Dict[str, Tuple[float, Dict[str, Any]]] = {}
+
+
+@app.route("/api/vacancies", methods=["GET", "POST"])
+def get_vacancies():
+    """
+    Vakansiyalar ro'yxatini sahifalangan holda tezkor qaytaradi (boshlang'ich default yoki filtrlangan).
+    """
+    if request.method == "POST":
+        data = request.json or {}
+    else:
+        data = request.args.to_dict()
+
+    try:
+        page = int(data.get("page", 0))
+    except (ValueError, TypeError):
+        page = 0
+
+    try:
+        page_size = int(data.get("pageSize", data.get("page_size", 20)))
+    except (ValueError, TypeError):
+        page_size = 20
+    page_size = max(1, min(page_size, 40))
+
+    keyword = (data.get("search") or "").strip() or None
+    region_val = (data.get("region") or "").strip() or None
+    district_val = (data.get("district") or "").strip() or None
+    organization_id = data.get("organizationId") or None
+    direction = (data.get("direction") or "").strip() or None
+    vacancy_type = data.get("vacancyType")
+    vacancy_level = data.get("vacancyLevel")
+    work_experience = data.get("workExperience")
+    min_salary = data.get("minSalary")
+    is_disability = data.get("isDisablity") if "isDisablity" in data else data.get("isDisability")
+    test_type = (data.get("test_type") or "").strip() or None
+
+    payload: Dict[str, Any] = {
+        "page": page,
+        "pageSize": page_size,
+        "search": keyword,
+        "regionSoato": None,
+        "districtSoato": None,
+        "organizationId": None,
+        "fatherOrganizationId": None,
+        "civilServant": None,
+        "vacancyType": None,
+        "isDisablity": None,
+        "isSmallEmployee": None,
+        "isInternal": None,
+        "minSalary": None,
+        "workExperience": None,
+        "organizationTin": None
+    }
+
+    if region_val and region_val not in ("0", "Barchasi", ""):
+        try:
+            payload["regionSoato"] = int(region_val)
+        except ValueError:
+            payload["regionSoato"] = region_val
+
+    if district_val and district_val not in ("0", "Barchasi", ""):
+        try:
+            payload["districtSoato"] = int(district_val)
+        except ValueError:
+            payload["districtSoato"] = district_val
+
+    if organization_id and str(organization_id).strip() not in ("0", ""):
+        try:
+            payload["organizationId"] = int(organization_id)
+        except ValueError:
+            payload["organizationId"] = organization_id
+
+    if direction:
+        dir_str = str(direction).strip()
+        if dir_str == "1":
+            payload["fatherOrganizationId"] = 1052  # Sog'liqni saqlash
+        elif dir_str == "2":
+            payload["civilServant"] = 1  # Davlat fuqarolik xizmati
+        elif dir_str == "3":
+            payload["isOtherOrganization"] = True  # Boshqalar
+
+    if vacancy_type is not None and str(vacancy_type).strip() not in ("", "null"):
+        try:
+            payload["isInternal"] = int(vacancy_type)
+        except ValueError:
+            pass
+
+    if vacancy_level and str(vacancy_level).strip() not in ("", "0", "null"):
+        payload["vacancyLevel"] = [str(vacancy_level).strip()]
+
+    if work_experience is not None and str(work_experience).strip() not in ("", "null"):
+        try:
+            payload["workExperience"] = int(work_experience)
+        except ValueError:
+            payload["workExperience"] = str(work_experience).strip()
+
+    if min_salary is not None and str(min_salary).strip() not in ("", "0", "null"):
+        try:
+            payload["minSalary"] = int(min_salary)
+        except ValueError:
+            pass
+
+    if is_disability is True or str(is_disability).lower() in ("true", "1"):
+        payload["isDisablity"] = True
+
+    # Kesh tekshirish
+    cache_key = json.dumps(payload, sort_keys=True) + f"_tt_{test_type}"
+    now = time.time()
+    if cache_key in _vacancies_cache:
+        cached_time, cached_res = _vacancies_cache[cache_key]
+        if now - cached_time < 60:
+            return jsonify(cached_res)
+
+    try:
+        raw_list = api_client.get_vacancy_list(payload=payload, page=page, page_size=page_size)
+        total_count = raw_list.get("count", 0)
+        items = raw_list.get("results", [])
+
+        # Har bir vakansiyaning to'liq ma'lumotlarini (test turi va h.k.) concurrent boyitish
+        def enrich_item(item):
+            v_id = item.get("id")
+            try:
+                detail = api_client.get_vacancy_detail(v_id)
+                return format_vacancy_card_data(detail)
+            except Exception:
+                return format_vacancy_card_data(item)
+
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            cards = list(executor.map(enrich_item, items))
+
+        total_pages = (total_count + page_size - 1) // page_size if total_count > 0 else 0
+        response_data = {
+            "status": "ok",
+            "count": total_count,
+            "page": page,
+            "pageSize": page_size,
+            "totalPages": total_pages,
+            "vacancies": cards
+        }
+
+        # Keshga saqlash (maksimal 100 ta kalit)
+        _vacancies_cache[cache_key] = (now, response_data)
+        if len(_vacancies_cache) > 100:
+            oldest_keys = sorted(_vacancies_cache.keys(), key=lambda k: _vacancies_cache[k][0])[:25]
+            for k in oldest_keys:
+                _vacancies_cache.pop(k, None)
+
+        return jsonify(response_data)
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
 @app.route("/api/scan", methods=["POST"])
 def scan_vacancies():
     """
@@ -1415,29 +1568,9 @@ def export_single_vacancy_api(vac_id):
 @app.route("/api/history/<filename>", methods=["DELETE"])
 def delete_history_document(filename):
     """
-    Yaratilgan Word (.docx) fayli va uning meta ma'lumotlarini exports papkasidan o'chiradi.
+    Foydalanuvchi talabi bo'yicha hujjatlarni o'chirish taqiqlangan (arxiv saqlanadi).
     """
-    safe_name = os.path.basename(filename)
-    filepath = os.path.join(EXPORTS_DIR, safe_name)
-    meta_path = os.path.join(EXPORTS_DIR, safe_name + ".json")
-    
-    deleted = False
-    if os.path.exists(filepath):
-        try:
-            os.remove(filepath)
-            deleted = True
-        except Exception as e:
-            return jsonify({"error": f"Faylni o'chirishda xatolik: {e}"}), 500
-
-    if os.path.exists(meta_path):
-        try:
-            os.remove(meta_path)
-        except Exception:
-            pass
-
-    if deleted:
-        return jsonify({"status": "ok", "message": f"{safe_name} muvaffaqiyatli o'chirildi"})
-    return jsonify({"error": "Fayl topilmadi"}), 404
+    return jsonify({"error": "Word tarixi hujjatlarini o'chirish taqiqlangan. Barcha hujjatlar arxivda saqlanadi."}), 403
 
 
 

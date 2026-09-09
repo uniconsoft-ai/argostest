@@ -372,3 +372,56 @@ ul.questions-dropdown.hidden,
   color: #a9b3d6 !important;
 }
 
+/* ==========================================================================
+   MOBIL MOSLASHUVCHANLIK VA UX YAXSHILANISHLAR
+   ========================================================================== */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Sensorli qurilmalarda tezkor va silliq skroll */
+#cards-view,
+#docx-container,
+#history-list {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Mobil filtr panelining silliq ochilishi */
+@media (max-width: 1023px) {
+  #filter-sidebar {
+    animation: fadeInSlide 0.2s ease-out;
+  }
+}
+
+@keyframes fadeInSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Suzuvchi Yuqoriga Tugmasi */
+#btn-back-to-top {
+  transition: opacity 0.25s ease, transform 0.2s ease;
+}
+#btn-back-to-top:hover {
+  transform: translateY(-2px);
+}
+#btn-back-to-top:active {
+  transform: translateY(0);
+}
+
+/* Kichik ekranlar uchun vakansiya kartasi optimizatsiyasi */
+@media (max-width: 640px) {
+  .btn-card-export-doc,
+  #btn-quick-search,
+  #btn-search-top,
+  #btn-load-more {
+    min-height: 42px;
+  }
+}
+
