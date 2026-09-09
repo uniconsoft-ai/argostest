@@ -21,6 +21,7 @@ import urllib.parse
 import threading
 import uuid
 import zipfile
+import xml.sax.saxutils as saxutils
 from datetime import datetime
 from typing import Dict, Any, List, Optional, Tuple, Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -650,9 +651,16 @@ class DocxExporter:
             run.font.color.rgb = RGBColor(255, 255, 255)
             run.font.size = Pt(9)
 
+        ns = nsdecls("w")
+        tblPr = summary_table._tbl.tblPr
+        tblCellMar = parse_xml(f'<w:tblCellMar {ns}><w:top w:w="60" w:type="dxa"/><w:bottom w:w="60" w:type="dxa"/><w:left w:w="80" w:type="dxa"/><w:right w:w="80" w:type="dxa"/></w:tblCellMar>')
+        tblPr.append(tblCellMar)
+
+        tbl_elm = summary_table._tbl
+        shd_even = f'<w:shd {ns} w:fill="F1F5F9"/>'
+
         for i, it in enumerate(items, 1):
-            row = summary_table.add_row()
-            bg = "F1F5F9" if i % 2 == 0 else "FFFFFF"
+            bg_tag = shd_even if i % 2 == 0 else ""
             viloyat, tuman = extract_location(it.get("region"))
             raw_t = it.get("test_type_name")
             if not raw_t or str(raw_t).lower() in ("noma'lum", "none", "null", "test turi #0", "ko'rsatilmagan"):
@@ -660,34 +668,32 @@ class DocxExporter:
             else:
                 display_t = str(raw_t).strip()
 
-            vals = [
-                str(i),
-                it.get("position_name") or "-",
-                it.get("organization") or "-",
-                viloyat,
-                tuman,
-                display_t
-            ]
-            for c_idx, val in enumerate(vals):
-                cell = row.cells[c_idx]
-                cell.width = widths[c_idx]
-                set_cell_background(cell, bg)
-                set_cell_margins(cell, top=60, bottom=60, left=80, right=80)
-                p = cell.paragraphs[0]
-                run = p.add_run(val)
-                run.font.size = Pt(8.5)
-                if c_idx == 5:
-                    run.font.bold = True
-                    if "boshqaruv" in display_t.lower():
-                        run.font.color.rgb = RGBColor(3, 105, 161)
-                    elif "mutaxassis" in display_t.lower():
-                        run.font.color.rgb = RGBColor(13, 148, 136)
-                    elif "hamshira" in display_t.lower() or "shifokor" in display_t.lower():
-                        run.font.color.rgb = RGBColor(124, 58, 237)
-                    else:
-                        run.font.color.rgb = RGBColor(100, 116, 139)
-                elif c_idx in (3, 4):
-                    run.font.color.rgb = RGBColor(30, 41, 59)
+            c0 = str(i)
+            c1 = saxutils.escape(str(it.get("position_name") or "-"))
+            c2 = saxutils.escape(str(it.get("organization") or "-"))
+            c3 = saxutils.escape(str(viloyat or "-"))
+            c4 = saxutils.escape(str(tuman or "-"))
+            c5 = saxutils.escape(str(display_t or "-"))
+
+            disp_low = display_t.lower()
+            if "boshqaruv" in disp_low:
+                c5_color = "0369A1"
+            elif "mutaxassis" in disp_low:
+                c5_color = "0D9488"
+            elif "hamshira" in disp_low or "shifokor" in disp_low:
+                c5_color = "7C3AED"
+            else:
+                c5_color = "64748B"
+
+            row_xml = f'''<w:tr {ns}>
+                <w:tc><w:tcPr><w:tcW w:w="576" w:type="dxa"/>{bg_tag}</w:tcPr><w:p><w:r><w:rPr><w:sz w:val="17"/></w:rPr><w:t>{c0}</w:t></w:r></w:p></w:tc>
+                <w:tc><w:tcPr><w:tcW w:w="2880" w:type="dxa"/>{bg_tag}</w:tcPr><w:p><w:r><w:rPr><w:sz w:val="17"/></w:rPr><w:t>{c1}</w:t></w:r></w:p></w:tc>
+                <w:tc><w:tcPr><w:tcW w:w="2592" w:type="dxa"/>{bg_tag}</w:tcPr><w:p><w:r><w:rPr><w:sz w:val="17"/><w:color w:val="1E293B"/></w:rPr><w:t>{c2}</w:t></w:r></w:p></w:tc>
+                <w:tc><w:tcPr><w:tcW w:w="1584" w:type="dxa"/>{bg_tag}</w:tcPr><w:p><w:r><w:rPr><w:sz w:val="17"/><w:color w:val="1E293B"/></w:rPr><w:t>{c3}</w:t></w:r></w:p></w:tc>
+                <w:tc><w:tcPr><w:tcW w:w="1584" w:type="dxa"/>{bg_tag}</w:tcPr><w:p><w:r><w:rPr><w:sz w:val="17"/><w:color w:val="1E293B"/></w:rPr><w:t>{c4}</w:t></w:r></w:p></w:tc>
+                <w:tc><w:tcPr><w:tcW w:w="2160" w:type="dxa"/>{bg_tag}</w:tcPr><w:p><w:r><w:rPr><w:b/><w:sz w:val="17"/><w:color w:val="{c5_color}"/></w:rPr><w:t>{c5}</w:t></w:r></w:p></w:tc>
+            </w:tr>'''
+            tbl_elm.append(parse_xml(row_xml))
 
         # Agar vakansiyalar soni ko'p bo'lsa (masalan 150 tadan ortiq),
         # umumiy jadvalda BARCHA vakansiyalar to'liq saqlanadi (100%),
@@ -1072,21 +1078,89 @@ class ArgosApiClient:
                     return None
                 return item
 
-        with ThreadPoolExecutor(max_workers=10) as executor:
-            while True:
-                if stop_check and stop_check():
-                    if progress_callback:
-                        progress_callback({
-                            "type": "stopped",
-                            "message": f"To'xtatildi. Yig'ilgan: {len(collected)} ta",
-                            "cur": len(collected),
-                            "tot": total_count
-                        })
-                    break
+        if not has_filter:
+            # =========================================================================
+            # FAST PARALLEL FETCH (Filtrsizoq barcha vakansiyalarni 2-3 soniyada tortish)
+            # =========================================================================
+            collected.extend(results)
 
-                scanned_so_far = min((page + 1) * page_size, total_count)
+            if progress_callback:
+                # Dastlabki topilgan kartalarni yuborish (UI darhol kartalarni ko'rsatishi uchun)
+                for it in results[:20]:
+                    card_item = format_vacancy_card_data(it)
+                    progress_callback({
+                        "type": "found",
+                        "count": len(collected),
+                        "card": card_item,
+                        "id": card_item["id"],
+                        "position": card_item["position_name"],
+                        "organization": card_item["organization"],
+                        "region": card_item["region_only"],
+                        "district": card_item["district_only"],
+                        "test_type": card_item["test_type_name"],
+                        "cur": len(collected),
+                        "tot": total_count
+                    })
 
-                if has_filter:
+            total_pages = (total_count + page_size - 1) // page_size
+            if max_items:
+                total_pages = min(total_pages, (max_items + page_size - 1) // page_size)
+
+            if total_pages > 1 and (not max_items or len(collected) < max_items):
+                pages_to_fetch = list(range(1, total_pages))
+
+                def fetch_single_page(p_idx):
+                    if stop_check and stop_check():
+                        return p_idx, []
+                    try:
+                        resp = self.get_vacancy_list(payload, page=p_idx, page_size=page_size, retries=3)
+                        return p_idx, resp.get("results", [])
+                    except Exception:
+                        return p_idx, []
+
+                page_store = {}
+                with ThreadPoolExecutor(max_workers=20) as executor:
+                    futs = [executor.submit(fetch_single_page, p) for p in pages_to_fetch]
+                    for fut in as_completed(futs):
+                        if stop_check and stop_check():
+                            break
+                        p_idx, p_items = fut.result()
+                        page_store[p_idx] = p_items
+
+                        scanned = len(collected) + sum(len(v) for v in page_store.values())
+                        pct = min(100, int((scanned / max(1, total_count)) * 100))
+                        if progress_callback:
+                            progress_callback({
+                                "type": "progress",
+                                "message": f"Tezkor yuklanmoqda: {scanned:,} / {total_count:,} ({pct}%)",
+                                "cur": scanned,
+                                "tot": total_count
+                            })
+
+                # Sahifalar tartibi bo'yicha yig'ish
+                for p_idx in pages_to_fetch:
+                    if p_idx in page_store:
+                        collected.extend(page_store[p_idx])
+                    if max_items and len(collected) >= max_items:
+                        break
+        else:
+            # =========================================================================
+            # FILTERED CONCURRENT FETCH (Filtrlangan holatda parallel tahlil)
+            # =========================================================================
+            with ThreadPoolExecutor(max_workers=16) as executor:
+                while True:
+                    if stop_check and stop_check():
+                        if progress_callback:
+                            progress_callback({
+                                "type": "stopped",
+                                "message": f"To'xtatildi. Yig'ilgan: {len(collected)} ta",
+                                "cur": len(collected),
+                                "tot": total_count
+                            })
+                        break
+
+                    scanned_so_far = min((page + 1) * page_size, total_count)
+
                     futures = [executor.submit(fetch_and_check, it) for it in results]
                     for fut in as_completed(futures):
                         if stop_check and stop_check():
@@ -1111,69 +1185,47 @@ class ArgosApiClient:
                                 })
                             if max_items and len(collected) >= max_items:
                                 break
-                else:
-                    for it in results:
-                        if stop_check and stop_check():
-                            break
-                        collected.append(it)
-                        if progress_callback:
-                            card_item = format_vacancy_card_data(it)
-                            progress_callback({
-                                "type": "found",
-                                "count": len(collected),
-                                "card": card_item,
-                                "id": card_item["id"],
-                                "position": card_item["position_name"],
-                                "organization": card_item["organization"],
-                                "region": card_item["region_only"],
-                                "district": card_item["district_only"],
-                                "test_type": card_item["test_type_name"],
-                                "cur": scanned_so_far,
-                                "tot": total_count
-                            })
-                        if max_items and len(collected) >= max_items:
-                            break
 
-                pct = int((scanned_so_far / max(1, total_count)) * 100)
-                if progress_callback and (not max_items or len(collected) < max_items):
-                    progress_callback({
-                        "type": "progress",
-                        "message": f"Skaner qilindi: {scanned_so_far:,} / {total_count:,} ({pct}%) | Tanlandi: {len(collected)} ta",
-                        "cur": scanned_so_far,
-                        "tot": total_count
-                    })
-
-                if max_items and len(collected) >= max_items:
-                    break
-
-                if scanned_so_far >= total_count or not results:
-                    break
-
-                page += 1
-                try:
-                    next_resp = self.get_vacancy_list(payload, page=page, page_size=page_size, retries=4)
-                    results = next_resp.get("results", [])
-                    if not results and (page * page_size) < total_count:
-                        time.sleep(0.5)
-                        next_resp = self.get_vacancy_list(payload, page=page, page_size=page_size, retries=4)
-                        results = next_resp.get("results", [])
-                except Exception as e:
-                    if progress_callback:
+                    pct = int((scanned_so_far / max(1, total_count)) * 100)
+                    if progress_callback and (not max_items or len(collected) < max_items):
                         progress_callback({
-                            "type": "warning",
-                            "message": f"Sahifa {page} yuklanishida ogohlantirish: {e}",
+                            "type": "progress",
+                            "message": f"Skaner qilindi: {scanned_so_far:,} / {total_count:,} ({pct}%) | Tanlandi: {len(collected)} ta",
                             "cur": scanned_so_far,
                             "tot": total_count
                         })
-                    if (page + 1) * page_size < total_count:
-                        page += 1
-                        try:
+
+                    if max_items and len(collected) >= max_items:
+                        break
+
+                    if scanned_so_far >= total_count or not results:
+                        break
+
+                    page += 1
+                    try:
+                        next_resp = self.get_vacancy_list(payload, page=page, page_size=page_size, retries=4)
+                        results = next_resp.get("results", [])
+                        if not results and (page * page_size) < total_count:
+                            time.sleep(0.3)
                             next_resp = self.get_vacancy_list(payload, page=page, page_size=page_size, retries=4)
                             results = next_resp.get("results", [])
-                        except Exception:
+                    except Exception as e:
+                        if progress_callback:
+                            progress_callback({
+                                "type": "warning",
+                                "message": f"Sahifa {page} yuklanishida ogohlantirish: {e}",
+                                "cur": scanned_so_far,
+                                "tot": total_count
+                            })
+                        if (page + 1) * page_size < total_count:
+                            page += 1
+                            try:
+                                next_resp = self.get_vacancy_list(payload, page=page, page_size=page_size, retries=4)
+                                results = next_resp.get("results", [])
+                            except Exception:
+                                break
+                        else:
                             break
-                    else:
-                        break
 
         if max_items and len(collected) > max_items:
             collected = collected[:max_items]

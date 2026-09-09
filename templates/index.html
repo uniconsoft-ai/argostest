@@ -1302,7 +1302,11 @@
 
     if (btnLoadMore) {
       btnLoadMore.addEventListener("click", () => {
-        loadVacanciesPage(currentVacanciesPage + 1, true);
+        if (currentlyRenderedCount < currentVacancies.length) {
+          renderMoreCardsFromMemory();
+        } else {
+          loadVacanciesPage(currentVacanciesPage + 1, true);
+        }
       });
     }
 
@@ -1613,10 +1617,50 @@
     if (tabCardsBtn) tabCardsBtn.addEventListener("click", () => switchWorkspaceTab("cards"));
     if (tabDocxBtn) tabDocxBtn.addEventListener("click", () => switchWorkspaceTab("docx"));
 
+    const CARDS_BATCH_SIZE = 30;
+    let currentlyRenderedCount = 0;
+
+    function renderMoreCardsFromMemory() {
+      if (!currentVacancies || currentVacancies.length === 0) return;
+      const start = currentlyRenderedCount;
+      const end = Math.min(start + CARDS_BATCH_SIZE, currentVacancies.length);
+      const frag = document.createDocumentFragment();
+      for (let i = start; i < end; i++) {
+        frag.appendChild(createVacancyCardElement(currentVacancies[i]));
+      }
+      cardsList.appendChild(frag);
+      currentlyRenderedCount = end;
+
+      if (cardsPagination) {
+        cardsPagination.classList.remove("hidden");
+        const displayTotal = totalVacanciesCount || currentVacancies.length;
+        if (paginationInfo) {
+          paginationInfo.textContent = `Ko'rsatilmoqda: ${currentlyRenderedCount.toLocaleString('uz-UZ')} / ${displayTotal.toLocaleString('uz-UZ')} ta vakansiya`;
+        }
+      }
+
+      if (btnLoadMore) {
+        if (currentlyRenderedCount >= currentVacancies.length) {
+          btnLoadMore.classList.add("hidden");
+        } else {
+          btnLoadMore.classList.remove("hidden");
+          btnLoadMore.disabled = false;
+          if (loadMoreIcon) loadMoreIcon.textContent = "➕";
+          if (loadMoreText) {
+            const rem = currentVacancies.length - currentlyRenderedCount;
+            const nextBatch = Math.min(CARDS_BATCH_SIZE, rem);
+            loadMoreText.textContent = `Ko'proq yuklash (+${nextBatch} ta)`;
+          }
+        }
+      }
+    }
+
     function renderAllCards(items, totalCount = null) {
       currentVacancies = items || [];
       cardsList.innerHTML = "";
-      const displayTotal = totalCount !== null ? totalCount : currentVacancies.length;
+      currentlyRenderedCount = 0;
+      totalVacanciesCount = totalCount !== null ? totalCount : currentVacancies.length;
+      const displayTotal = totalVacanciesCount;
       tabCardsBadge.textContent = `${displayTotal.toLocaleString('uz-UZ')} ta`;
       if (titleVacanciesCount) titleVacanciesCount.textContent = displayTotal.toLocaleString('uz-UZ');
 
@@ -1630,28 +1674,22 @@
       cardsEmptyState.classList.add("hidden");
       cardsList.classList.remove("hidden");
 
-      currentVacancies.forEach(it => {
-        const el = createVacancyCardElement(it);
-        cardsList.appendChild(el);
-      });
-
-      if (cardsPagination) {
-        cardsPagination.classList.remove("hidden");
-        if (paginationInfo) {
-          paginationInfo.textContent = `Ko'rsatilmoqda: ${currentVacancies.length} / ${displayTotal.toLocaleString('uz-UZ')} ta vakansiya`;
-        }
-      }
+      renderMoreCardsFromMemory();
     }
 
     function appendVacancyCard(item) {
       currentVacancies.push(item);
       cardsEmptyState.classList.add("hidden");
       cardsList.classList.remove("hidden");
-      tabCardsBadge.textContent = `${currentVacancies.length.toLocaleString('uz-UZ')} ta`;
-      if (titleVacanciesCount) titleVacanciesCount.textContent = currentVacancies.length.toLocaleString('uz-UZ');
+      const displayTotal = currentVacancies.length;
+      tabCardsBadge.textContent = `${displayTotal.toLocaleString('uz-UZ')} ta`;
+      if (titleVacanciesCount) titleVacanciesCount.textContent = displayTotal.toLocaleString('uz-UZ');
 
-      const el = createVacancyCardElement(item);
-      cardsList.appendChild(el);
+      if (cardsList.children.length < CARDS_BATCH_SIZE) {
+        const el = createVacancyCardElement(item);
+        cardsList.appendChild(el);
+        currentlyRenderedCount = cardsList.children.length;
+      }
     }
 
     async function loadVacanciesPage(page = 0, append = false) {
@@ -2242,15 +2280,27 @@
           // Word fayli parametrlari
           currentDocName.textContent = evt.filename;
           currentDocFilename = evt.filename;
+          if (currentDocBadge) {
+            currentDocBadge.textContent = `${countDisplay} ta`;
+            currentDocBadge.classList.remove("hidden");
+          }
+          if (currentDocMeta) {
+            currentDocMeta.textContent = `Yangi yaratildi (${evt.filename})`;
+            currentDocMeta.classList.remove("hidden");
+          }
           btnDownload.disabled = false;
           btnDownload.href = evt.docx_url;
           btnDownload.download = evt.filename;
           btnPrint.disabled = false;
 
-          loadDocumentByName(evt.filename, {
-            count: `${countDisplay} ta vakansiya`,
-            meta: `Yangi yaratildi (${evt.filename})`
-          });
+          // Faqat agar foydalanuvchi hozir aynan Word tabida turgan bo'lsa Wordni render qilamiz,
+          // aks holda kartalar tabida turganida ortiqcha client CPU yuklanmaydi va sahifa qotmaydi!
+          if (activeWorkspaceTab === "docx") {
+            loadDocumentByName(evt.filename, {
+              count: `${countDisplay} ta vakansiya`,
+              meta: `Yangi yaratildi (${evt.filename})`
+            });
+          }
         } else if (evt.type === "done_empty") {
           resetScanButtons();
           progressBar.style.width = "100%";
