@@ -177,8 +177,9 @@
       </nav>
 
       <!-- O'ng tomon: Test jarayonlarini onlayn kuzatish, Word tarixi va Mavzu -->
+      <!-- O'ng tomon: Test jarayonlarini onlayn kuzatish, Mavzu, Word tarixi va Fayl ochish -->
       <div class="flex items-center space-x-2 sm:space-x-3">
-        <!-- 3-rasmdagi: Test jarayonlarini onlayn kuzatish (testing-live monitor icon) -->
+        <!-- 1. Test jarayonlarini onlayn kuzatish (testing-live monitor icon) -->
         <a href="https://vacancy.argos.uz/testing-live" target="_blank" 
           class="header-icon-btn hidden sm:inline-flex" 
           title="Test jarayonlarini onlayn kuzatish">
@@ -190,22 +191,26 @@
           <span class="header-icon-btn__dot animate-pulse"></span>
         </a>
 
-        <!-- Word Hujjatlar tarixi -->
+        <!-- 2. Dark/Light Mode (vacancy.argos.uz kabi chapga olindi va rasmiy icon o'rnatildi) -->
+        <button id="btn-theme-toggle" type="button" class="header-icon-btn" title="Tungi rejimga o'tish" aria-label="Mavzuni o'zgartirish">
+          <span id="theme-icon" class="flex items-center justify-center">
+            <svg class="w-4 h-4 text-[#3165cb] dark:text-[#dfe6f4]" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12.09,20.66A8.68,8.68,0,0,1,11,20.59,8.8,8.8,0,0,1,3.41,13a8.71,8.71,0,0,1,6.83-9.67,1.23,1.23,0,0,1,1.27.48,1.27,1.27,0,0,1,.05,1.4,5.3,5.3,0,0,0-.66,3.47,5.24,5.24,0,0,0,4.38,4.38h0a5.19,5.19,0,0,0,3.47-.67,1.27,1.27,0,0,1,1.4.07,1.21,1.21,0,0,1,.48,1.26A8.7,8.7,0,0,1,12.09,20.66ZM10,5a7.25,7.25,0,1,0,9,9,6.74,6.74,0,0,1-9.61-5A6.75,6.75,0,0,1,10,5Z"/>
+            </svg>
+          </span>
+        </button>
+
+        <!-- 3. Word Hujjatlar tarixi -->
         <button id="btn-history-toggle" class="flex items-center space-x-1 px-2.5 sm:px-3 py-2 text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition shadow-2xs cursor-pointer" title="Yaratilgan Word (.docx) hujjatlari arxivi">
           <span class="hidden sm:inline">Word tarixi</span>
           <span id="history-badge" class="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-300 font-extrabold">0</span>
         </button>
 
-        <!-- Kompyuterdan Word ochish -->
+        <!-- 4. Kompyuterdan Word ochish -->
         <label for="local-file-input" class="hidden sm:flex cursor-pointer items-center space-x-1 px-2.5 sm:px-3 py-2 text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition shadow-2xs" title="Kompyuterdan mavjud Word (.docx) faylini ochish">
           <span class="hidden xl:inline">Fayl ochish</span>
           <input type="file" id="local-file-input" accept=".docx" class="hidden">
         </label>
-
-        <!-- Dark/Light Mode -->
-        <button id="btn-theme-toggle" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 hover:bg-slate-100 dark:hover:bg-slate-700 transition flex items-center justify-center text-slate-600 dark:text-slate-300 shadow-2xs cursor-pointer" title="Mavzuni o'zgartirish">
-          <span id="theme-icon">🌙</span>
-        </button>
 
         <!-- Mobil Menyu Tugmasi (Kichik ekranlar uchun) -->
         <button type="button" id="btn-mobile-nav-toggle" class="lg:hidden w-9 h-9 sm:w-10 sm:h-10 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 hover:bg-slate-100 dark:hover:bg-slate-700 transition flex items-center justify-center text-slate-700 dark:text-slate-200 shadow-2xs cursor-pointer" title="Menyuni ochish/yopish">
@@ -927,22 +932,49 @@
     // =========================================================================
     // 1. MAVZU (DARK / LIGHT) SOZLAMASI
     // =========================================================================
-    function initTheme() {
-      const saved = localStorage.getItem("theme");
-      if (saved === "dark" || (!saved && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
-        document.documentElement.classList.add("dark");
-        themeIcon.textContent = "☀️";
-      } else {
-        document.documentElement.classList.remove("dark");
-        themeIcon.textContent = "🌙";
+    const ARGOS_MOON_SVG = `<svg class="w-4 h-4 text-[#3165cb] dark:text-[#dfe6f4]" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12.09,20.66A8.68,8.68,0,0,1,11,20.59,8.8,8.8,0,0,1,3.41,13a8.71,8.71,0,0,1,6.83-9.67,1.23,1.23,0,0,1,1.27.48,1.27,1.27,0,0,1,.05,1.4,5.3,5.3,0,0,0-.66,3.47,5.24,5.24,0,0,0,4.38,4.38h0a5.19,5.19,0,0,0,3.47-.67,1.27,1.27,0,0,1,1.4.07,1.21,1.21,0,0,1,.48,1.26A8.7,8.7,0,0,1,12.09,20.66ZM10,5a7.25,7.25,0,1,0,9,9,6.74,6.74,0,0,1-9.61-5A6.75,6.75,0,0,1,10,5Z"/>
+    </svg>`;
+
+    const ARGOS_SUN_SVG = `<svg class="w-4 h-4 text-[#3165cb] dark:text-[#dfe6f4]" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12,17.75A5.75,5.75,0,1,1,17.75,12,5.76,5.76,0,0,1,12,17.75Zm0-10A4.25,4.25,0,1,0,16.25,12,4.26,4.26,0,0,0,12,7.75Z"/>
+      <path d="M12,5a.76.76,0,0,1-.75-.75V2.75a.75.75,0,0,1,1.5,0v1.5A.76.76,0,0,1,12,5Z"/>
+      <path d="M12,22a.76.76,0,0,1-.75-.75v-1.5a.75.75,0,0,1,1.5,0v1.5A.76.76,0,0,1,12,22Z"/>
+      <path d="M21.25,12.75h-1.5a.75.75,0,0,1,0-1.5h1.5a.75.75,0,0,1,0,1.5Z"/>
+      <path d="M4.25,12.75H2.75a.75.75,0,0,1,0-1.5h1.5a.75.75,0,0,1,0,1.5Z"/>
+      <path d="M6.5,7.25A.74.74,0,0,1,6,7L4.91,6A.75.75,0,1,1,6,4.91L7,6A.75.75,0,0,1,7,7,.74.74,0,0,1,6.5,7.25Z"/>
+      <path d="M18.56,19.31a.74.74,0,0,1-.53-.22L17,18A.75.75,0,0,1,18,17L19.09,18a.75.75,0,0,1,0,1.06A.74.74,0,0,1,18.56,19.31Z"/>
+      <path d="M17.5,7.25A.74.74,0,0,1,17,7,.75.75,0,0,1,17,6L18,4.91A.75.75,0,1,1,19.09,6L18,7A.74.74,0,0,1,17.5,7.25Z"/>
+      <path d="M5.44,19.31a.74.74,0,0,1-.53-.22.75.75,0,0,1,0-1.06L6,17A.75.75,0,0,1,7,18L6,19.09A.74.74,0,0,1,5.44,19.31Z"/>
+    </svg>`;
+
+    function updateThemeUI(isDark) {
+      if (themeIcon) {
+        themeIcon.innerHTML = isDark ? ARGOS_SUN_SVG : ARGOS_MOON_SVG;
+      }
+      if (themeToggleBtn) {
+        themeToggleBtn.title = isDark ? "Kunduzgi rejimga o'tish" : "Tungi rejimga o'tish";
       }
     }
 
-    themeToggleBtn.addEventListener("click", () => {
-      const isDark = document.documentElement.classList.toggle("dark");
-      localStorage.setItem("theme", isDark ? "dark" : "light");
-      themeIcon.textContent = isDark ? "☀️" : "🌙";
-    });
+    function initTheme() {
+      const saved = localStorage.getItem("theme");
+      const isDark = saved === "dark" || (!saved && window.matchMedia("(prefers-color-scheme: dark)").matches);
+      if (isDark) {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+      updateThemeUI(isDark);
+    }
+
+    if (themeToggleBtn) {
+      themeToggleBtn.addEventListener("click", () => {
+        const isDark = document.documentElement.classList.toggle("dark");
+        localStorage.setItem("theme", isDark ? "dark" : "light");
+        updateThemeUI(isDark);
+      });
+    }
 
     // =========================================================================
     // 1.1. SAVOLLAR DROPDOWN BOSHQARUVI (vacancy.argos.uz kabi)
