@@ -35,7 +35,7 @@
   </script>
 
   <!-- Maxsus Uslublar -->
-  <link rel="stylesheet" href="/static/css/style.css?v=2.2.0">
+  <link rel="stylesheet" href="/static/css/style.css?v=2.3.0">
 
   <!-- Mahaliy Word Rendering Kutubxonalari (Oflayn) -->
   <script src="/static/js/jszip.min.js"></script>
@@ -46,11 +46,7 @@
   <!-- ======================================================================== -->
   <!-- 0. MUSTAQILLIK BANNERI (vacancy.argos.uz KABI ENG YUQORI QISMDA) -->
   <!-- ======================================================================== -->
-  <div class="w-full bg-[#0c6584] dark:bg-[#073242] overflow-hidden border-b border-white/10">
-    <div class="container-argos max-w-[1320px] mx-auto">
-      <img src="/static/assets/images/independent.png?v=2" alt="O'zbekiston Respublikasi Mustaqilligi" class="w-full max-w-[1320px] mx-auto h-auto block independence-badge" loading="eager">
-    </div>
-  </div>
+  <img src="/static/assets/images/independent.png?v=2" alt="O'zbekiston Respublikasi Mustaqilligi" class="w-full h-auto block independence-badge" loading="eager">
 
   <!-- ======================================================================== -->
   <!-- 1. YUQORI NAVIGATSIYA (ARGOS PORTAL STILIDA & LOKAL SERVER BRANDING) -->
@@ -1006,14 +1002,25 @@
     const questionsChevron = document.getElementById("questions-chevron");
 
     if (questionsNavToggle && questionsDropdown) {
+      let questionsCloseTimer = null;
+
       const openQuestionsDropdown = () => {
+        clearTimeout(questionsCloseTimer);
         questionsDropdown.classList.remove("hidden");
         if (questionsChevron) questionsChevron.classList.add("rotate-180");
       };
 
-      const closeQuestionsDropdown = () => {
-        questionsDropdown.classList.add("hidden");
-        if (questionsChevron) questionsChevron.classList.remove("rotate-180");
+      const closeQuestionsDropdown = (immediate = false) => {
+        if (immediate) {
+          clearTimeout(questionsCloseTimer);
+          questionsDropdown.classList.add("hidden");
+          if (questionsChevron) questionsChevron.classList.remove("rotate-180");
+        } else {
+          questionsCloseTimer = setTimeout(() => {
+            questionsDropdown.classList.add("hidden");
+            if (questionsChevron) questionsChevron.classList.remove("rotate-180");
+          }, 200);
+        }
       };
 
       questionsNavToggle.addEventListener("click", (e) => {
@@ -1022,19 +1029,31 @@
         if (isHidden) {
           openQuestionsDropdown();
         } else {
-          closeQuestionsDropdown();
+          closeQuestionsDropdown(true);
         }
       });
 
+      // Mouse hover: open on hover, close with delay (vacancy.argos.uz kabi)
       if (questionsNavItem) {
+        questionsNavItem.addEventListener("mouseenter", () => {
+          openQuestionsDropdown();
+        });
         questionsNavItem.addEventListener("mouseleave", () => {
-          closeQuestionsDropdown();
+          closeQuestionsDropdown(false);
         });
       }
 
+      // Dropdown o'zida hover bo'lsa yopilmasin
+      questionsDropdown.addEventListener("mouseenter", () => {
+        clearTimeout(questionsCloseTimer);
+      });
+      questionsDropdown.addEventListener("mouseleave", () => {
+        closeQuestionsDropdown(false);
+      });
+
       document.addEventListener("click", (e) => {
         if (!questionsDropdown.contains(e.target) && !questionsNavToggle.contains(e.target)) {
-          closeQuestionsDropdown();
+          closeQuestionsDropdown(true);
         }
       });
     }
@@ -1305,7 +1324,8 @@
 
     function createVacancyCardElement(item) {
       const card = document.createElement("div");
-      card.className = "bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xs hover:shadow-md transition-all p-4 sm:p-5 flex flex-col justify-between";
+      // vacancy.argos.uz vacancy-card stiliga 100% mos
+      card.className = "bg-white dark:bg-[#131b4b] rounded-xl border border-[#dfe6f4] dark:border-[#a2ade8]/30 hover:border-[#3165cb] dark:hover:border-[#a2ade8] hover:shadow-[0_8px_20px_rgba(0,0,0,0.07)] transition-all duration-300 p-5 sm:p-6 flex flex-col justify-between";
       card.id = `vacancy-card-${item.id}`;
 
       const argosUrl = item.argos_url || `https://vacancy.argos.uz/hrm-vacancy-detail/${item.id}`;
@@ -1336,36 +1356,37 @@
       card.innerHTML = `
         <!-- Yuqori qism: Tashkilot va Nishon -->
         <div>
-          <div class="flex items-start justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-700/60">
-            <div>
-              <h3 class="font-bold text-slate-900 dark:text-white text-sm sm:text-base leading-snug">
+          <div class="flex items-start justify-between gap-3 pb-3 border-b border-[#dfe6f4] dark:border-[#a2ade8]/20">
+            <div class="flex-1 min-w-0">
+              <!-- Tashkilot nomi — Argos: font-weight:600, #3165cb rangi -->
+              <h3 class="font-semibold text-sm sm:text-base leading-snug text-[#3165cb] dark:text-[#a2ade8] truncate">
                 ${escapeHtml(item.organization || "Tashkilot ko'rsatilmagan")}
               </h3>
-              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1.5">
-                <span>•</span> <span>${escapeHtml(item.structure_name || "Boshqaruv apparati")}</span>
+              <p class="text-xs text-[#79838e] dark:text-[#a9b3d6] mt-0.5 truncate">
+                ${escapeHtml(item.structure_name || "Boshqaruv apparati")}
               </p>
             </div>
             <div class="flex items-center space-x-2 shrink-0">
-              <span class="px-3 py-1 text-xs font-bold rounded-lg ${isInternal ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300' : 'bg-blue-600 text-white shadow-xs shadow-blue-500/20'}">
+              <span class="px-2.5 py-1 text-xs font-semibold rounded-lg ${isInternal ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300' : 'bg-[#3165cb] text-white'}">
                 ${isInternal ? 'Ichki tanlov' : 'Tashqi tanlov'}
               </span>
-              <button type="button" class="btn-fav-star text-lg leading-none ${isFav ? 'is-favorited text-amber-500' : 'text-slate-300 dark:text-slate-600 hover:text-amber-400'}" data-id="${item.id}" title="${isFav ? 'Saqlanganlardan o‘chirish' : 'Saqlab qo‘yish (Sevimli)'}">
+              <button type="button" class="btn-fav-star text-lg leading-none ${isFav ? 'is-favorited text-amber-500' : 'text-[#dfe6f4] dark:text-slate-600 hover:text-amber-400'}" data-id="${item.id}" title="${isFav ? "Saqlanganlardan o'chirish" : "Saqlab qo'yish (Sevimli)"}">
                 ★
               </button>
             </div>
           </div>
 
-          <!-- Lavozim Nomi (Argos havolasi bilan) -->
-          <div class="mt-3.5 mb-3.5">
+          <!-- Lavozim Nomi — Argos: font-weight:700, #26292e, font-size:18px -->
+          <div class="mt-3 mb-3.5">
             <a href="${argosUrl}" target="_blank"
-              class="text-base sm:text-lg font-black text-slate-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors inline-flex items-center gap-1.5 group">
+              class="text-base sm:text-lg font-bold text-[#26292e] dark:text-white hover:text-[#3165cb] dark:hover:text-[#a2ade8] transition-colors inline-flex items-center gap-1.5 group leading-snug">
               <span>${escapeHtml(item.position_name || "Lavozim nomi")}</span>
-              <span class="text-xs text-blue-500 opacity-70 group-hover:opacity-100 transition-opacity">↗</span>
+              <span class="text-xs text-[#3165cb] opacity-60 group-hover:opacity-100 transition-opacity">↗</span>
             </a>
           </div>
 
           <!-- 2-Ustunli Parametrlar Grid (Argos standartiga 100% mos) -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2.5 text-xs text-slate-700 dark:text-slate-300">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2.5 text-xs text-[#26292e] dark:text-white">
             <!-- Chap Ustun -->
             <div class="space-y-2.5">
               <div class="flex items-center space-x-2.5">
@@ -1374,14 +1395,14 @@
                   <path fill-rule="evenodd" clip-rule="evenodd" d="M8.66699 8.00008C8.66699 6.15913 10.1594 4.66675 12.0003 4.66675H14.667C15.0352 4.66675 15.3337 4.96522 15.3337 5.33341C15.3337 5.7016 15.0352 6.00008 14.667 6.00008H12.0003C10.8958 6.00008 10.0003 6.89551 10.0003 8.00008C10.0003 9.10465 10.8958 10.0001 12.0003 10.0001H14.667C15.0352 10.0001 15.3337 10.2986 15.3337 10.6667C15.3337 11.0349 15.0352 11.3334 14.667 11.3334H12.0003C10.1594 11.3334 8.66699 9.84103 8.66699 8.00008Z" fill="#3165CB"/>
                   <path d="M12.6663 7.99992C12.6663 8.36811 12.3679 8.66659 11.9997 8.66659C11.6315 8.66659 11.333 8.36811 11.333 7.99992C11.333 7.63173 11.6315 7.33325 11.9997 7.33325C12.3679 7.33325 12.6663 7.63173 12.6663 7.99992Z" fill="#3165CB"/>
                 </svg>
-                <span class="font-semibold text-slate-800 dark:text-slate-200">${escapeHtml(item.salary_display || "Shtat jadvali bo'yicha")}</span>
+                <span class="font-semibold text-[#26292e] dark:text-white">${escapeHtml(item.salary_display || "Shtat jadvali bo'yicha")}</span>
               </div>
               <div class="flex items-center space-x-2.5">
                 <svg class="w-4 h-4 text-[#3165cb] shrink-0" viewBox="0 0 16 15" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path fill-rule="evenodd" clip-rule="evenodd" d="M8 13.5C11.3137 13.5 14 10.8137 14 7.5C14 4.18629 11.3137 1.5 8 1.5C4.68629 1.5 2 4.18629 2 7.5C2 10.8137 4.68629 13.5 8 13.5ZM8 15C12.1421 15 15.5 11.6421 15.5 7.5C15.5 3.35786 12.1421 0 8 0C3.85786 0 0.5 3.35786 0.5 7.5C0.5 11.6421 3.85786 15 8 15Z" fill="#3165CB"/>
                   <path fill-rule="evenodd" clip-rule="evenodd" d="M8 3C8.41421 3 8.75 3.33579 8.75 3.75V7.18934L10.4053 8.84467C10.6982 9.13756 10.6982 9.61244 10.4053 9.90533C10.1124 10.1982 9.63756 10.1982 9.34467 9.90533L7.46967 8.03033C7.32902 7.88968 7.25 7.69891 7.25 7.5V3.75C7.25 3.33579 7.58579 3 8 3Z" fill="#3165CB"/>
                 </svg>
-                <span class="font-semibold text-slate-800 dark:text-slate-200">${escapeHtml(item.work_type_display || "To'liq")}</span>
+                <span class="font-semibold text-[#26292e] dark:text-white">${escapeHtml(item.work_type_display || "To'liq")}</span>
               </div>
               <div class="flex items-center space-x-2.5">
                 <svg class="w-4 h-4 text-[#3165cb] shrink-0" viewBox="0 0 24 24" fill="none" stroke="#3165CB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1390,7 +1411,7 @@
                   <line x1="16" y1="13" x2="8" y2="13"></line>
                   <line x1="16" y1="17" x2="8" y2="17"></line>
                 </svg>
-                <span class="font-semibold text-slate-800 dark:text-slate-200">${escapeHtml(item.contract_display || "Nomuayyan muddatli")}</span>
+                <span class="font-semibold text-[#26292e] dark:text-white">${escapeHtml(item.contract_display || "Nomuayyan muddatli")}</span>
               </div>
             </div>
 
@@ -1400,17 +1421,17 @@
                 <svg class="w-4 h-4 text-[#3165cb] shrink-0" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path fill-rule="evenodd" clip-rule="evenodd" d="M13.6893 1.85856C15.2347 1.21462 16.7852 2.76504 16.1412 4.31048L11.6986 14.9728C10.8297 17.058 7.77364 16.7056 7.40227 14.4773L6.84801 11.1518L3.52245 10.5975C1.29421 10.2261 0.941754 7.17003 3.02696 6.3012L13.6893 1.85856ZM14.7566 3.73356C14.8854 3.42447 14.5753 3.11439 14.2662 3.24317L3.60389 7.68581C2.90882 7.97542 3.0263 8.99412 3.76905 9.11792L7.09461 9.67218C7.72682 9.77754 8.22223 10.273 8.3276 10.9052L8.88186 14.2307C9.00565 14.9735 10.0244 15.091 10.314 14.3959L14.7566 3.73356Z" fill="#3165CB"/>
                 </svg>
-                <span class="font-semibold text-slate-800 dark:text-slate-200">${escapeHtml(item.region_display || "-")}</span>
+                <span class="font-semibold text-[#26292e] dark:text-white">${escapeHtml(item.region_display || "-")}</span>
               </div>
               <div class="flex items-center space-x-2.5">
                 <svg class="w-4 h-4 text-[#3165cb] shrink-0" viewBox="0 0 16 15" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path fill-rule="evenodd" clip-rule="evenodd" d="M8 13.5C11.3137 13.5 14 10.8137 14 7.5C14 4.18629 11.3137 1.5 8 1.5C4.68629 1.5 2 4.18629 2 7.5C2 10.8137 4.68629 13.5 8 13.5ZM8 15C12.1421 15 15.5 11.6421 15.5 7.5C15.5 3.35786 12.1421 0 8 0C3.85786 0 0.5 3.35786 0.5 7.5C0.5 11.6421 3.85786 15 8 15Z" fill="#3165CB"/>
                   <path fill-rule="evenodd" clip-rule="evenodd" d="M8 3C8.41421 3 8.75 3.33579 8.75 3.75V7.18934L10.4053 8.84467C10.6982 9.13756 10.6982 9.61244 10.4053 9.90533C10.1124 10.1982 9.63756 10.1982 9.34467 9.90533L7.46967 8.03033C7.32902 7.88968 7.25 7.69891 7.25 7.5V3.75C7.25 3.33579 7.58579 3 8 3Z" fill="#3165CB"/>
                 </svg>
-                <span class="font-semibold text-slate-800 dark:text-slate-200">${escapeHtml(item.experience_display || "Mehnat staji talab etilmaydi")}</span>
+                <span class="font-semibold text-[#26292e] dark:text-white">${escapeHtml(item.experience_display || "Mehnat staji talab etilmaydi")}</span>
               </div>
               
-              <!-- TEST TURI (USER TALABI BO'YICHA TO'Q KO'K VA RAMKA BILAN AJRATILGAN) -->
+              <!-- TEST TURI -->
               <div class="${testTypeContainerClass}">
                 <svg class="w-4 h-4 text-[#3165cb] dark:text-blue-300 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3.5"/>
@@ -1429,7 +1450,7 @@
         </div>
 
         <!-- Pastki qator (Sanalar, Statistika va Tezkor Harakatlar) -->
-        <div class="mt-4 pt-3.5 border-t border-slate-100 dark:border-slate-700/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
+        <div class="mt-4 pt-3.5 border-t border-[#dfe6f4] dark:border-[#a2ade8]/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-[#79838e] dark:text-[#a9b3d6]">
           <div class="flex items-center justify-between sm:justify-start gap-4 font-medium">
             <div class="flex items-center gap-3">
               <span class="flex items-center gap-1.5" title="Boshlanish sanasi">

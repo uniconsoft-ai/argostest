@@ -2,33 +2,41 @@
    ARGOS.UZ WEB WORD VIEWER - ASOSIY USLUBLAR
    ========================================================================== */
 
+/* Source Sans Pro — vacancy.argos.uz rasmiy fonti */
+@import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,200..900;1,200..900&display=swap');
+
 :root {
-  --primary: #2563eb;
-  --primary-hover: #1d4ed8;
-  --bg-main: #f8fafc;
+  --primary: #3165cb;
+  --primary-hover: #2451b0;
+  --bg-main: #f3f5fb;
   --bg-card: #ffffff;
-  --border-color: #e2e8f0;
-  --text-main: #0f172a;
-  --text-muted: #64748b;
+  --border-color: #dfe6f4;
+  --text-main: #26292e;
+  --text-muted: #79838e;
   --doc-bg: #e2e8f0;
 }
 
 .dark {
-  --primary: #3b82f6;
-  --primary-hover: #60a5fa;
+  --primary: #a2ade8;
+  --primary-hover: #bcc3ef;
   --bg-main: #0f172a;
-  --bg-card: #1e293b;
-  --border-color: #334155;
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
+  --bg-card: #131b4b;
+  --border-color: rgba(162, 173, 232, 0.3);
+  --text-main: #ffffff;
+  --text-muted: #a9b3d6;
   --doc-bg: #0b1120;
 }
 
+/* vacancy.argos.uz: barcha elementlarda Source Sans Pro ishlatiladi */
+*, *::before, *::after {
+  font-family: "Source Sans 3", "Source Sans Pro", system-ui, -apple-system, sans-serif !important;
+}
+
 body {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   background-color: var(--bg-main);
   color: var(--text-main);
   min-height: 100vh;
+  line-height: 1.5;
 }
 
 /* Mustaqillik Banneri (vacancy.argos.uz kabi) */
