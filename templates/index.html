@@ -826,11 +826,23 @@
         </button>
       </div>
 
-      <div class="p-3 bg-slate-50 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center text-xs">
+      <div class="px-3 py-2 bg-slate-50 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between gap-2 text-xs flex-wrap">
         <span class="text-slate-500 dark:text-slate-400">Jild: <code class="text-blue-600 dark:text-blue-400">exports/</code></span>
-        <button id="btn-refresh-history" class="text-blue-600 dark:text-blue-400 font-semibold hover:underline flex items-center space-x-1">
-          <span>🔄 Yangilash</span>
-        </button>
+        <div class="flex items-center gap-2">
+          <div class="flex items-center gap-0.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-0.5">
+            <button id="btn-history-sort-desc" title="Yangi birinchi"
+              class="history-sort-btn px-2 py-1 rounded-md text-[11px] font-bold transition-all bg-[#3165cb] text-white">
+              ↓ Yangi
+            </button>
+            <button id="btn-history-sort-asc" title="Eski birinchi"
+              class="history-sort-btn px-2 py-1 rounded-md text-[11px] font-semibold transition-all text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700">
+              ↑ Eski
+            </button>
+          </div>
+          <button id="btn-refresh-history" class="text-[#3165cb] dark:text-[#a2ade8] font-semibold hover:underline flex items-center gap-1 cursor-pointer">
+            🔄 Yangilash
+          </button>
+        </div>
       </div>
 
       <div id="history-list" class="flex-1 overflow-y-auto p-4 space-y-3">
@@ -2301,12 +2313,31 @@
     // =========================================================================
     // 7. HUJJATLAR TARIXI VA BOSHQARUV
     // =========================================================================
+    let historySortOrder = "desc"; // "desc" = yangi birinchi, "asc" = eski birinchi
+
+    // dd.mm.yyyy HH:MM:SS → Date obyektiga aylantirish
+    function parseHistoryDate(dateStr) {
+      if (!dateStr) return new Date(0);
+      // format: "25.12.2024 14:30:00"
+      const [datePart, timePart] = dateStr.split(" ");
+      if (!datePart) return new Date(0);
+      const [dd, mm, yyyy] = datePart.split(".");
+      return new Date(`${yyyy}-${mm}-${dd}T${timePart || "00:00:00"}`);
+    }
+
     async function refreshHistoryList() {
       try {
         const res = await fetch("/api/history");
-        const items = await res.json();
+        let items = await res.json();
         if (historyBadge) historyBadge.textContent = items.length;
         if (drawerHistoryBadge) drawerHistoryBadge.textContent = items.length;
+
+        // Sanasi bo'yicha saralash
+        items.sort((a, b) => {
+          const da = parseHistoryDate(a.date);
+          const db = parseHistoryDate(b.date);
+          return historySortOrder === "desc" ? db - da : da - db;
+        });
 
         historyList.innerHTML = "";
         if (items.length === 0) {
@@ -2396,6 +2427,36 @@
     });
 
     btnRefreshHistory.addEventListener("click", refreshHistoryList);
+
+    // Sort tugmalari
+    const btnHistorySortDesc = document.getElementById("btn-history-sort-desc");
+    const btnHistorySortAsc  = document.getElementById("btn-history-sort-asc");
+
+    function updateSortButtons() {
+      if (!btnHistorySortDesc || !btnHistorySortAsc) return;
+      if (historySortOrder === "desc") {
+        btnHistorySortDesc.className = "history-sort-btn px-2 py-1 rounded-md text-[11px] font-bold transition-all bg-[#3165cb] text-white";
+        btnHistorySortAsc.className  = "history-sort-btn px-2 py-1 rounded-md text-[11px] font-semibold transition-all text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700";
+      } else {
+        btnHistorySortAsc.className  = "history-sort-btn px-2 py-1 rounded-md text-[11px] font-bold transition-all bg-[#3165cb] text-white";
+        btnHistorySortDesc.className = "history-sort-btn px-2 py-1 rounded-md text-[11px] font-semibold transition-all text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700";
+      }
+    }
+
+    if (btnHistorySortDesc) {
+      btnHistorySortDesc.addEventListener("click", () => {
+        historySortOrder = "desc";
+        updateSortButtons();
+        refreshHistoryList();
+      });
+    }
+    if (btnHistorySortAsc) {
+      btnHistorySortAsc.addEventListener("click", () => {
+        historySortOrder = "asc";
+        updateSortButtons();
+        refreshHistoryList();
+      });
+    }
 
     historyModal.addEventListener("click", (e) => {
       if (e.target === historyModal) {
