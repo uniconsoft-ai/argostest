@@ -597,10 +597,20 @@ class DocxExporter:
         filepath = os.path.join(self.exports_dir, filename)
         doc.save(filepath)
         try:
+            stat = os.stat(filepath)
+            size_kb = round(stat.st_size / 1024, 1)
+            mtime = datetime.fromtimestamp(stat.st_mtime).strftime("%d.%m.%Y %H:%M:%S")
             meta_path = filepath + ".json"
             card_items = [format_vacancy_card_data(item)]
+            meta_payload = {
+                "filename": filename,
+                "count": "1 ta vakansiya",
+                "date": mtime,
+                "size_kb": size_kb,
+                "vacancies": card_items
+            }
             with open(meta_path, "w", encoding="utf-8") as mf:
-                json.dump(card_items, mf, ensure_ascii=False, indent=2)
+                json.dump(meta_payload, mf, ensure_ascii=False, indent=2)
         except Exception:
             pass
         return filepath
@@ -725,10 +735,22 @@ class DocxExporter:
         filepath = os.path.join(self.exports_dir, filename)
         doc.save(filepath)
         try:
+            stat = os.stat(filepath)
+            size_kb = round(stat.st_size / 1024, 1)
+            mtime = datetime.fromtimestamp(stat.st_mtime).strftime("%d.%m.%Y %H:%M:%S")
             meta_path = filepath + ".json"
             card_items = [format_vacancy_card_data(it) for it in items[:250]]
+            cnt_str = "1 ta vakansiya" if len(items) == 1 else f"{len(items):,} ta".replace(",", " ")
+            meta_payload = {
+                "filename": filename,
+                "count": cnt_str,
+                "total_items": len(items),
+                "date": mtime,
+                "size_kb": size_kb,
+                "vacancies": card_items
+            }
             with open(meta_path, "w", encoding="utf-8") as mf:
-                json.dump(card_items, mf, ensure_ascii=False, indent=2)
+                json.dump(meta_payload, mf, ensure_ascii=False, indent=2)
         except Exception:
             pass
         return filepath
@@ -1822,7 +1844,12 @@ def get_history():
                         count_str = "1 ta vakansiya" if c == 1 else f"{c:,} ta".replace(",", " ")
                     elif isinstance(meta_content, dict) and "count" in meta_content:
                         c_val = meta_content["count"]
-                        count_str = f"{c_val} ta" if isinstance(c_val, int) else str(c_val)
+                        if c_val == 1 or str(c_val) in ("1", "1 ta", "1 ta vakansiya"):
+                            count_str = "1 ta vakansiya"
+                        elif isinstance(c_val, int):
+                            count_str = f"{c_val:,} ta".replace(",", " ")
+                        else:
+                            count_str = str(c_val)
             except Exception:
                 pass
 
@@ -1882,16 +1909,23 @@ def export_single_vacancy_api(vac_id):
         fname = os.path.basename(filepath)
         quoted_fname = urllib.parse.quote(fname)
         card_item = format_vacancy_card_data(detail)
+
+        stat = os.stat(filepath)
+        size_kb = round(stat.st_size / 1024, 1)
+        mtime = datetime.fromtimestamp(stat.st_mtime).strftime("%d.%m.%Y %H:%M:%S")
         
         return jsonify({
             "status": "ok",
             "filename": fname,
             "count": 1,
+            "count_display": "1 ta vakansiya",
+            "size": f"{size_kb} KB",
+            "date": mtime,
             "docx_url": f"/api/docx-raw/{quoted_fname}",
             "preview_url": f"/api/preview/{quoted_fname}",
             "download_url": f"/api/download/{quoted_fname}",
             "card": card_item,
-            "message": f"Vakansiya #{vac_id} Word hujjati yaratildi!"
+            "message": f"Vakansiya #{vac_id} Word hujjati yaratildi va Word tarixiga o'tkazildi!"
         })
     except requests.exceptions.HTTPError as http_err:
         if http_err.response is not None and http_err.response.status_code == 404:

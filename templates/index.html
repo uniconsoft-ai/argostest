@@ -662,6 +662,12 @@
             </button>
           </div>
 
+          <button type="button" id="btn-workspace-history"
+            class="hidden sm:flex items-center space-x-1 px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-[#a2ade8]/40 text-xs font-semibold text-slate-700 dark:text-[#a2ade8] hover:bg-slate-100 dark:hover:bg-[#051257] transition cursor-pointer" title="Word tarixi ro'yxatini ochish">
+            <span>📚</span>
+            <span>Word tarixi</span>
+          </button>
+
           <!-- Tanlangan hujjat nomi (kichik ko'rsatkich) -->
           <div class="hidden lg:flex items-center space-x-2 pl-2 border-l border-slate-200 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400 truncate max-w-xs">
             <span class="w-2 h-2 rounded-full bg-blue-500 shrink-0"></span>
@@ -705,6 +711,13 @@
             <button type="button" id="btn-print" disabled
               class="px-2.5 py-1 text-xs font-semibold rounded-lg border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition disabled:opacity-40 disabled:cursor-not-allowed" title="Chop etish">
               🖨️ Chop etish
+            </button>
+
+            <!-- Word tarixi tugmasi -->
+            <button type="button" id="btn-docx-history"
+              class="px-2.5 py-1 text-xs font-semibold rounded-lg border border-blue-300 dark:border-[#a2ade8]/40 hover:bg-blue-50 dark:hover:bg-[#051257] text-[#3165cb] dark:text-[#a2ade8] transition flex items-center gap-1 cursor-pointer" title="Word tarixi ro'yxatini ochish">
+              <span>📚</span>
+              <span class="hidden sm:inline">Word tarixi</span>
             </button>
           </div>
 
@@ -848,34 +861,45 @@
   <!-- ======================================================================== -->
   <!-- 3. HUJJATLAR TARIXI MODAL (DRAWER) -->
   <!-- ======================================================================== -->
-  <div id="history-modal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex justify-end hidden transition-opacity">
-    <div class="bg-white dark:bg-slate-800 w-full max-w-md h-full shadow-2xl flex flex-col border-l border-slate-200 dark:border-slate-700">
-      <div class="px-5 py-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
-        <div class="flex items-center space-x-2">
-          <span class="text-lg">📚</span>
-          <h3 class="text-base font-bold text-slate-900 dark:text-white">Yaratilgan Word Hujjatlari</h3>
+  <div id="history-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex justify-end hidden transition-opacity">
+    <div class="bg-white dark:bg-[#0c1445] w-full max-w-md h-full shadow-2xl flex flex-col border-l border-slate-200 dark:border-[#a2ade8]/30 transition-transform duration-300">
+      <div class="px-5 py-4 border-b border-slate-200 dark:border-[#a2ade8]/20 flex items-center justify-between">
+        <div class="flex items-center space-x-2.5">
+          <span class="text-xl">📚</span>
+          <div>
+            <h3 class="text-base font-bold text-slate-900 dark:text-white">Word Tarixi</h3>
+            <p class="text-[11px] text-slate-500 dark:text-[#a9b3d6]">Barcha yaratilgan va saqlangan Word (.docx) hujjatlari</p>
+          </div>
         </div>
-        <button id="btn-close-history" class="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 rounded-lg text-lg">
+        <button id="btn-close-history" class="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-white rounded-lg text-lg cursor-pointer transition">
           ✕
         </button>
       </div>
 
-      <div class="px-3 py-2 bg-slate-50 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between gap-2 text-xs flex-wrap">
-        <span class="text-slate-500 dark:text-slate-400">Jild: <code class="text-blue-600 dark:text-blue-400">exports/</code></span>
-        <div class="flex items-center gap-2">
-          <div class="flex items-center gap-0.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-0.5">
-            <button id="btn-history-sort-desc" title="Yangi birinchi"
-              class="history-sort-btn px-2 py-1 rounded-md text-[11px] font-bold transition-all bg-[#3165cb] text-white">
-              ↓ Yangi
-            </button>
-            <button id="btn-history-sort-asc" title="Eski birinchi"
-              class="history-sort-btn px-2 py-1 rounded-md text-[11px] font-semibold transition-all text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700">
-              ↑ Eski
+      <!-- Qidiruv va Tezkor Filtrlash -->
+      <div class="p-3 bg-slate-50/90 dark:bg-[#051257]/90 border-b border-slate-200 dark:border-[#a2ade8]/20 space-y-2">
+        <div class="relative">
+          <input type="text" id="history-search-input" placeholder="🔍 Hujjat nomi yoki lavozim..."
+            class="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-[#a2ade8]/30 bg-white dark:bg-[#051257] text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500">
+          <span class="absolute left-2.5 top-1.5 text-xs text-slate-400 pointer-events-none">🔍</span>
+        </div>
+        <div class="flex items-center justify-between gap-2 text-xs flex-wrap">
+          <span id="history-count-label" class="text-slate-500 dark:text-[#a9b3d6] font-medium text-[11px]">Hujjatlar: yuklanmoqda...</span>
+          <div class="flex items-center gap-2">
+            <div class="flex items-center gap-0.5 bg-white dark:bg-[#051257] border border-slate-200 dark:border-[#a2ade8]/30 rounded-lg p-0.5">
+              <button id="btn-history-sort-desc" title="Yangi birinchi"
+                class="history-sort-btn px-2 py-1 rounded-md text-[11px] font-bold transition-all bg-[#3165cb] text-white">
+                ↓ Yangi
+              </button>
+              <button id="btn-history-sort-asc" title="Eski birinchi"
+                class="history-sort-btn px-2 py-1 rounded-md text-[11px] font-semibold transition-all text-slate-500 dark:text-[#a9b3d6] hover:bg-slate-100 dark:hover:bg-slate-700">
+                ↑ Eski
+              </button>
+            </div>
+            <button id="btn-refresh-history" class="text-[#3165cb] dark:text-[#a2ade8] font-semibold hover:underline flex items-center gap-1 cursor-pointer text-[11px]">
+              🔄 Yangilash
             </button>
           </div>
-          <button id="btn-refresh-history" class="text-[#3165cb] dark:text-[#a2ade8] font-semibold hover:underline flex items-center gap-1 cursor-pointer">
-            🔄 Yangilash
-          </button>
         </div>
       </div>
 
@@ -958,6 +982,10 @@
     const btnRefreshHistory = document.getElementById("btn-refresh-history");
     const historyList = document.getElementById("history-list");
     const historyBadge = document.getElementById("history-badge");
+    const historySearchInput = document.getElementById("history-search-input");
+    const historyCountLabel = document.getElementById("history-count-label");
+    const btnWorkspaceHistory = document.getElementById("btn-workspace-history");
+    const btnDocxHistory = document.getElementById("btn-docx-history");
     const btnCardsOpenLatest = document.getElementById("btn-cards-open-latest");
     const localFileInput = document.getElementById("local-file-input");
     const btnOpenLatest = document.getElementById("btn-open-latest");
@@ -1616,14 +1644,17 @@
             if (!res.ok || data.error) {
               throw new Error(data.error || "Word yaratib bo'lmadi");
             }
-            showNotification("Word tayyor! ✅", `"${data.filename}" yaratildi va ochilmoqda.`, "success");
+            // Word ko'ruvchini orqa fonda tayyorlash
             loadDocumentByName(data.filename, {
               count: "1 ta vakansiya",
-              meta: `${data.filename}`
+              meta: `${data.date || ''} • ${data.size || ''}`
             });
             tabDocxBadge.classList.remove("hidden");
-            switchWorkspaceTab("docx");
-            refreshHistoryList();
+
+            // DOIM yaratilgandan so'ng darhol Word tarixiga o'tkazish
+            await openHistoryDrawer(data.filename);
+
+            showNotification("Word tarixiga o'tkazildi! 📚", `"${data.filename}" muvaffaqiyatli yaratildi va Word tarixiga o'tkazildi.`, "success");
           } catch (err) {
             showNotification("Eksport xatosi", err.message, "error");
           } finally {
@@ -1969,8 +2000,8 @@
         console.warn("Faylni serverga yuklashda ogohlantirish:", uploadErr);
       }
 
-      // 2. Darhol Word tarixi ro'yxatini va nishonlarini yangilash
-      await refreshHistoryList();
+      // 2. Darhol Word tarixiga o'tkazish va yangi hujjatni ko'rsatish
+      await openHistoryDrawer(serverFilename);
 
       // 3. Ekranda Word hujjatini to'liq ko'rsatish
       await renderDocxFromBlob(file, serverFilename, {
@@ -2143,8 +2174,7 @@
     if (btnDrawerHistory && historyModal) {
       btnDrawerHistory.addEventListener("click", () => {
         if (mobileNavDrawer) mobileNavDrawer.classList.add("hidden");
-        historyModal.classList.remove("hidden");
-        refreshHistoryList();
+        openHistoryDrawer();
       });
     }
 
@@ -2304,7 +2334,6 @@
           progressPercent.textContent = "100%";
           progressStatusTitle.textContent = `Tayyor! ${evt.message}`;
           resetScanButtons();
-          refreshHistoryList();
 
           const countDisplay = (evt.count || currentVacancies.length).toLocaleString('uz-UZ');
           if (liveFoundCount) liveFoundCount.textContent = `${countDisplay} ta`;
@@ -2338,14 +2367,16 @@
           btnDownload.download = evt.filename;
           btnPrint.disabled = false;
 
-          // Faqat agar foydalanuvchi hozir aynan Word tabida turgan bo'lsa Wordni render qilamiz,
-          // aks holda kartalar tabida turganida ortiqcha client CPU yuklanmaydi va sahifa qotmaydi!
-          if (activeWorkspaceTab === "docx") {
-            loadDocumentByName(evt.filename, {
-              count: `${countDisplay} ta vakansiya`,
-              meta: `Yangi yaratildi (${evt.filename})`
-            });
-          }
+          // Word faylini ko'ruvchiga yuklab qo'yish
+          loadDocumentByName(evt.filename, {
+            count: `${countDisplay} ta vakansiya`,
+            meta: `Yangi yaratildi (${evt.filename})`
+          });
+
+          // DOIM Word yaratilganda srazi Word tarixiga o'tkazish
+          await openHistoryDrawer(evt.filename);
+
+          showNotification("Word tarixiga o'tkazildi! 📚", `Jami ${countDisplay} ta vakansiya Word hujjati sifatida saqlandi.`, "success");
         } else if (evt.type === "done_empty") {
           resetScanButtons();
           progressBar.style.width = "100%";
@@ -2414,105 +2445,188 @@
     }
 
     // =========================================================================
-    // 7. HUJJATLAR TARIXI VA BOSHQARUV
+    // 7. HUJJATLAR TARIXI VA BOSHQARUV (TO'LIQ AVTO-O'TKAZISH VA INTEGRATSIYA)
     // =========================================================================
     let historySortOrder = "desc"; // "desc" = yangi birinchi, "asc" = eski birinchi
+    let cachedHistoryItems = [];
 
     // dd.mm.yyyy HH:MM:SS → Date obyektiga aylantirish
     function parseHistoryDate(dateStr) {
       if (!dateStr) return new Date(0);
-      // format: "25.12.2024 14:30:00"
       const [datePart, timePart] = dateStr.split(" ");
       if (!datePart) return new Date(0);
       const [dd, mm, yyyy] = datePart.split(".");
       return new Date(`${yyyy}-${mm}-${dd}T${timePart || "00:00:00"}`);
     }
 
-    async function refreshHistoryList() {
+    function updateHistoryBadges(count, animate = false) {
+      [historyBadge, drawerHistoryBadge].forEach(b => {
+        if (b) {
+          b.textContent = count;
+          if (animate) {
+            b.classList.add("scale-125", "bg-emerald-500", "text-white");
+            setTimeout(() => {
+              b.classList.remove("scale-125", "bg-emerald-500", "text-white");
+            }, 1200);
+          }
+        }
+      });
+    }
+
+    async function openHistoryDrawer(highlightFilename = null) {
+      if (!historyModal) return;
+      historyModal.classList.remove("hidden");
+      await refreshHistoryList(highlightFilename);
+    }
+
+    function closeHistoryDrawer() {
+      if (!historyModal) return;
+      historyModal.classList.add("hidden");
+    }
+
+    function renderHistoryItems(items, highlightFilename = null) {
+      if (!historyList) return;
+      const searchTerm = historySearchInput ? historySearchInput.value.trim().toLowerCase() : "";
+      
+      let filtered = [...items];
+      if (searchTerm) {
+        filtered = filtered.filter(it => 
+          (it.filename && it.filename.toLowerCase().includes(searchTerm)) ||
+          (it.date && it.date.toLowerCase().includes(searchTerm)) ||
+          (it.count && it.count.toLowerCase().includes(searchTerm))
+        );
+      }
+
+      // Sanasi bo'yicha saralash
+      filtered.sort((a, b) => {
+        const da = parseHistoryDate(a.date);
+        const db = parseHistoryDate(b.date);
+        return historySortOrder === "desc" ? db - da : da - db;
+      });
+
+      if (historyCountLabel) {
+        historyCountLabel.textContent = `Jami: ${filtered.length} ta hujjat`;
+      }
+
+      historyList.innerHTML = "";
+      if (filtered.length === 0) {
+        historyList.innerHTML = `
+          <div class="text-center py-12 text-slate-400 dark:text-[#a9b3d6] text-xs space-y-1">
+            <div class="text-2xl">📁</div>
+            <div>${searchTerm ? "Qidiruv bo'yicha hech qanday hujjat topilmadi." : "Hozircha hech qanday Word hujjati saqlanmagan."}</div>
+          </div>
+        `;
+        return;
+      }
+
+      let highlightedCard = null;
+
+      filtered.forEach(item => {
+        const isNew = highlightFilename && item.filename === highlightFilename;
+        const card = document.createElement("div");
+        card.className = `history-item p-3.5 rounded-xl border transition-all duration-300 space-y-2.5 ${
+          isNew 
+            ? "border-2 border-[#3165cb] dark:border-[#a2ade8] bg-blue-50/90 dark:bg-[#1a2870] shadow-lg ring-2 ring-[#3165cb]/30" 
+            : "border-slate-200 dark:border-[#a2ade8]/30 bg-slate-50/80 dark:bg-[#051257] hover:border-blue-500 dark:hover:border-[#a2ade8]"
+        }`;
+        card.dataset.filename = item.filename;
+
+        const newBadgeHtml = isNew ? `
+          <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-500 text-white animate-pulse shrink-0">
+            ✨ Yangi yaratildi
+          </span>
+        ` : "";
+
+        card.innerHTML = `
+          <div class="flex items-start justify-between gap-2">
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="text-sm shrink-0">📄</span>
+                <h4 class="text-xs font-bold text-slate-800 dark:text-white break-all leading-tight">${item.filename}</h4>
+                ${newBadgeHtml}
+              </div>
+              <div class="flex items-center space-x-2 text-[11px] text-slate-500 dark:text-[#a9b3d6] mt-1.5">
+                <span>📅 ${item.date}</span>
+                <span>•</span>
+                <span>📦 ${item.size}</span>
+              </div>
+            </div>
+            <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-blue-100 text-blue-800 dark:bg-[#3165cb] dark:text-white shrink-0">
+              ${item.count}
+            </span>
+          </div>
+          <div class="flex items-center justify-end space-x-2 pt-2 border-t border-slate-200/60 dark:border-[#a2ade8]/20 flex-wrap gap-y-1">
+            <button type="button" class="btn-history-view-docx px-2.5 py-1 text-xs font-bold rounded bg-blue-600 hover:bg-blue-700 text-white transition cursor-pointer flex items-center gap-1 shadow-xs" data-name="${item.filename}" data-count="${item.count}" data-meta="${item.date} • ${item.size}">
+              <span>👁️</span><span>Wordni ochish</span>
+            </button>
+            <button type="button" class="btn-history-view-cards px-2.5 py-1 text-xs font-medium rounded border border-blue-500/40 dark:border-[#a2ade8]/40 hover:bg-blue-50 dark:hover:bg-[#32419b] text-blue-600 dark:text-[#dfe6f4] transition cursor-pointer flex items-center gap-1" data-name="${item.filename}">
+              <span>📋</span><span>Kartalar</span>
+            </button>
+            <a href="${item.download_url}" download class="px-2.5 py-1 text-xs font-medium rounded border border-slate-300 dark:border-[#a2ade8]/40 hover:bg-slate-200 dark:hover:bg-[#32419b] text-slate-700 dark:text-[#dfe6f4] transition flex items-center gap-1">
+              <span>📥</span><span>Yuklab olish</span>
+            </a>
+          </div>
+        `;
+
+        if (isNew) {
+          highlightedCard = card;
+        }
+
+        historyList.appendChild(card);
+      });
+
+      // Tugmalar tinglovchilari
+      historyList.querySelectorAll(".btn-history-view-docx").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const fname = btn.dataset.name;
+          const fcount = btn.dataset.count;
+          const fmeta = btn.dataset.meta;
+          closeHistoryDrawer();
+          loadDocumentByName(fname, { count: fcount, meta: fmeta });
+          tabDocxBadge.classList.remove("hidden");
+          switchWorkspaceTab("docx");
+        });
+      });
+
+      historyList.querySelectorAll(".btn-history-view-cards").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          const fname = btn.dataset.name;
+          closeHistoryDrawer();
+          try {
+            const r = await fetch(`/api/vacancies-by-doc/${encodeURIComponent(fname)}`);
+            if (r.ok) {
+              const cData = await r.json();
+              if (cData && cData.length > 0) {
+                renderAllCards(cData);
+                switchWorkspaceTab("cards");
+                showNotification("Kartalar yuklandi", `"${fname}" hujjatidagi ${cData.length} ta vakansiya ochildi.`, "info");
+                return;
+              }
+            }
+          } catch (e) {
+            console.warn("Kartalarni yuklab bo'lmadi:", e);
+          }
+          // Agar kartalar bo'lmasa, Wordni ko'rsatamiz
+          loadDocumentByName(fname);
+          switchWorkspaceTab("docx");
+        });
+      });
+
+      if (highlightedCard) {
+        setTimeout(() => {
+          highlightedCard.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 150);
+      }
+    }
+
+    async function refreshHistoryList(highlightFilename = null) {
       try {
         const res = await fetch("/api/history");
         let items = await res.json();
-        if (historyBadge) historyBadge.textContent = items.length;
-        if (drawerHistoryBadge) drawerHistoryBadge.textContent = items.length;
+        cachedHistoryItems = items;
 
-        // Sanasi bo'yicha saralash
-        items.sort((a, b) => {
-          const da = parseHistoryDate(a.date);
-          const db = parseHistoryDate(b.date);
-          return historySortOrder === "desc" ? db - da : da - db;
-        });
-
-        historyList.innerHTML = "";
-        if (items.length === 0) {
-          historyList.innerHTML = `
-            <div class="text-center py-10 text-slate-400 text-sm">
-              Hozircha hech qanday Word hujjati saqlanmagan.
-            </div>
-          `;
-          return items;
-        }
-
-        items.forEach(item => {
-          const card = document.createElement("div");
-          card.className = "history-item p-3.5 rounded-xl border border-slate-200 dark:border-[#a2ade8]/30 bg-slate-50 dark:bg-[#051257] hover:border-blue-500 dark:hover:border-[#a2ade8] transition space-y-2";
-          card.innerHTML = `
-            <div class="flex items-start justify-between">
-              <div>
-                <h4 class="text-xs font-bold text-slate-800 dark:text-white break-all">${item.filename}</h4>
-                <div class="flex items-center space-x-2 text-[11px] text-slate-500 dark:text-[#a9b3d6] mt-0.5">
-                  <span>📅 ${item.date}</span>
-                  <span>•</span>
-                  <span>📦 ${item.size}</span>
-                </div>
-              </div>
-              <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-blue-100 text-blue-800 dark:bg-[#3165cb] dark:text-white shrink-0">
-                ${item.count}
-              </span>
-            </div>
-            <div class="flex items-center justify-end space-x-2 pt-1 border-t border-slate-200/60 dark:border-[#a2ade8]/20">
-              <button type="button" class="btn-history-view px-3 py-1 text-xs font-bold rounded bg-blue-600 hover:bg-blue-700 text-white transition cursor-pointer" data-name="${item.filename}" data-count="${item.count}" data-meta="${item.date} • ${item.size}">
-                👁️ Vebda ko'rish
-              </button>
-              <a href="${item.download_url}" download class="px-2.5 py-1 text-xs font-medium rounded border border-slate-300 dark:border-[#a2ade8]/40 hover:bg-slate-200 dark:hover:bg-[#32419b] text-slate-700 dark:text-[#dfe6f4] transition">
-                📥 Yuklab olish
-              </a>
-            </div>
-          `;
-          historyList.appendChild(card);
-        });
-
-        // "Vebda ko'rish" tugmalari
-        historyList.querySelectorAll(".btn-history-view").forEach(btn => {
-          btn.addEventListener("click", async () => {
-            const fname = btn.dataset.name;
-            const fcount = btn.dataset.count;
-            const fmeta = btn.dataset.meta;
-            historyModal.classList.add("hidden");
-            
-            // 1. Wordni tayyorlash
-            loadDocumentByName(fname, { count: fcount, meta: fmeta });
-            tabDocxBadge.classList.remove("hidden");
-
-            // 2. Ushbu hujjat kartalarini yuklashga urinish
-            try {
-              const r = await fetch(`/api/vacancies-by-doc/${encodeURIComponent(fname)}`);
-              if (r.ok) {
-                const cData = await r.json();
-                if (cData && cData.length > 0) {
-                  renderAllCards(cData);
-                  switchWorkspaceTab("cards");
-                  return;
-                }
-              }
-            } catch (e) {
-              console.warn("Kartalarni yuklab bo'lmadi:", e);
-            }
-            switchWorkspaceTab("docx");
-          });
-        });
-
-
-
+        updateHistoryBadges(items.length, !!highlightFilename);
+        renderHistoryItems(items, highlightFilename);
         return items;
       } catch (err) {
         console.error("Tarixni olishda xatolik:", err);
@@ -2520,16 +2634,41 @@
       }
     }
 
-    btnHistoryToggle.addEventListener("click", () => {
-      historyModal.classList.remove("hidden");
-      refreshHistoryList();
-    });
+    if (btnHistoryToggle) {
+      btnHistoryToggle.addEventListener("click", () => {
+        openHistoryDrawer();
+      });
+    }
 
-    btnCloseHistory.addEventListener("click", () => {
-      historyModal.classList.add("hidden");
-    });
+    if (btnWorkspaceHistory) {
+      btnWorkspaceHistory.addEventListener("click", () => {
+        openHistoryDrawer();
+      });
+    }
 
-    btnRefreshHistory.addEventListener("click", refreshHistoryList);
+    if (btnDocxHistory) {
+      btnDocxHistory.addEventListener("click", () => {
+        openHistoryDrawer();
+      });
+    }
+
+    if (btnCloseHistory) {
+      btnCloseHistory.addEventListener("click", () => {
+        closeHistoryDrawer();
+      });
+    }
+
+    if (btnRefreshHistory) {
+      btnRefreshHistory.addEventListener("click", () => {
+        refreshHistoryList();
+      });
+    }
+
+    if (historySearchInput) {
+      historySearchInput.addEventListener("input", () => {
+        renderHistoryItems(cachedHistoryItems);
+      });
+    }
 
     // Sort tugmalari
     const btnHistorySortDesc = document.getElementById("btn-history-sort-desc");
@@ -2539,10 +2678,10 @@
       if (!btnHistorySortDesc || !btnHistorySortAsc) return;
       if (historySortOrder === "desc") {
         btnHistorySortDesc.className = "history-sort-btn px-2 py-1 rounded-md text-[11px] font-bold transition-all bg-[#3165cb] text-white";
-        btnHistorySortAsc.className  = "history-sort-btn px-2 py-1 rounded-md text-[11px] font-semibold transition-all text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700";
+        btnHistorySortAsc.className  = "history-sort-btn px-2 py-1 rounded-md text-[11px] font-semibold transition-all text-slate-500 dark:text-[#a9b3d6] hover:bg-slate-100 dark:hover:bg-slate-700";
       } else {
         btnHistorySortAsc.className  = "history-sort-btn px-2 py-1 rounded-md text-[11px] font-bold transition-all bg-[#3165cb] text-white";
-        btnHistorySortDesc.className = "history-sort-btn px-2 py-1 rounded-md text-[11px] font-semibold transition-all text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700";
+        btnHistorySortDesc.className = "history-sort-btn px-2 py-1 rounded-md text-[11px] font-semibold transition-all text-slate-500 dark:text-[#a9b3d6] hover:bg-slate-100 dark:hover:bg-slate-700";
       }
     }
 
@@ -2550,22 +2689,24 @@
       btnHistorySortDesc.addEventListener("click", () => {
         historySortOrder = "desc";
         updateSortButtons();
-        refreshHistoryList();
+        renderHistoryItems(cachedHistoryItems);
       });
     }
     if (btnHistorySortAsc) {
       btnHistorySortAsc.addEventListener("click", () => {
         historySortOrder = "asc";
         updateSortButtons();
-        refreshHistoryList();
+        renderHistoryItems(cachedHistoryItems);
       });
     }
 
-    historyModal.addEventListener("click", (e) => {
-      if (e.target === historyModal) {
-        historyModal.classList.add("hidden");
-      }
-    });
+    if (historyModal) {
+      historyModal.addEventListener("click", (e) => {
+        if (e.target === historyModal) {
+          closeHistoryDrawer();
+        }
+      });
+    }
 
     async function loadLatestDocAndCards(stayOnDocx = false) {
       const items = await refreshHistoryList();
