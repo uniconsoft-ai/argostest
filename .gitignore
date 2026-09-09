@@ -9,5 +9,6 @@ ENV/
 .env
 .firebase/
 exports/*.docx
+exports/*.json
 !exports/.gitkeep
 *.log

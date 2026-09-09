@@ -35,7 +35,7 @@
   </script>
 
   <!-- Maxsus Uslublar -->
-  <link rel="stylesheet" href="/static/css/style.css?v=2.0.2">
+  <link rel="stylesheet" href="/static/css/style.css?v=2.0.3">
 
   <!-- Mahaliy Word Rendering Kutubxonalari (Oflayn) -->
   <script src="/static/js/jszip.min.js"></script>
@@ -1540,8 +1540,7 @@
       currentVacancies.push(item);
       cardsEmptyState.classList.add("hidden");
       cardsList.classList.remove("hidden");
-      const displayTotal = Math.max(totalVacanciesCount, currentVacancies.length);
-      tabCardsBadge.textContent = `${displayTotal.toLocaleString('uz-UZ')} ta`;
+      tabCardsBadge.textContent = `${currentVacancies.length.toLocaleString('uz-UZ')} ta`;
 
       const el = createVacancyCardElement(item);
       cardsList.appendChild(el);
@@ -2014,16 +2013,22 @@
           progressBar.style.width = "100%";
           progressPercent.textContent = "100%";
           progressStatusTitle.textContent = `Tayyor! ${evt.message}`;
+          resetScanButtons();
+          refreshHistoryList();
+
+          const countDisplay = (evt.count || currentVacancies.length).toLocaleString('uz-UZ');
+          if (liveFoundCount) liveFoundCount.textContent = `${countDisplay} ta`;
+          tabCardsBadge.textContent = `${countDisplay} ta`;
+
           setTimeout(() => {
             progressCard.classList.add("hidden");
           }, 3500);
           hideNotification();
 
           tabDocxBadge.classList.remove("hidden");
-          tabCardsBadge.textContent = `${evt.count} ta`;
 
           if (evt.vacancies && evt.vacancies.length > 0) {
-            renderAllCards(evt.vacancies);
+            renderAllCards(evt.vacancies, evt.count);
           }
 
           // Word fayli parametrlari
@@ -2035,11 +2040,17 @@
           btnPrint.disabled = false;
 
           loadDocumentByName(evt.filename, {
-            count: `${evt.count} ta vakansiya`,
+            count: `${countDisplay} ta vakansiya`,
             meta: `Yangi yaratildi (${evt.filename})`
           });
         } else if (evt.type === "done_empty") {
+          resetScanButtons();
+          progressBar.style.width = "100%";
+          progressPercent.textContent = "100%";
           progressStatusTitle.textContent = evt.message;
+          setTimeout(() => {
+            progressCard.classList.add("hidden");
+          }, 3500);
           cardsEmptyState.classList.remove("hidden");
           cardsList.classList.add("hidden");
           tabCardsBadge.textContent = "0 ta";
@@ -2048,7 +2059,11 @@
             "Belgilangan shartlarga mos vakansiyalar topilmadi. Filtr parametrlarini o'zgartirib ko'ring.",
             "warning"
           );
+        } else if (evt.type === "stopped") {
+          resetScanButtons();
+          progressStatusTitle.textContent = evt.message;
         } else if (evt.type === "error") {
+          resetScanButtons();
           progressStatusTitle.textContent = "Xatolik: " + evt.message;
           showNotification("Xatolik yuz berdi", evt.message, "error");
         }
@@ -2056,14 +2071,16 @@
     }
 
     async function stopScan() {
+      resetScanButtons();
+      progressStatusTitle.textContent = "Jarayon to'xtatildi.";
       try {
-        await fetch("/api/stop", { method: "POST" });
         if (scanController) scanController.abort();
-        progressStatusTitle.textContent = "Jarayon to'xtatildi.";
+        await fetch("/api/stop", { method: "POST" });
       } catch (e) {
         console.error("To'xtatishda xatolik:", e);
       } finally {
         resetScanButtons();
+        refreshHistoryList();
       }
     }
 

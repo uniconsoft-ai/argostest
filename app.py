@@ -226,7 +226,10 @@ def format_vacancy_card_data(res: Dict[str, Any]) -> Dict[str, Any]:
 
     raw_t = res.get("test_type_name")
     if not raw_t or str(raw_t).lower() in ("none", "null", "test turi #0", "ko'rsatilmagan", "noma'lum"):
-        t_name = "Test talab etilmaydi"
+        if res.get("is_dfx"):
+            t_name = "Davlat fuqarolik xizmatchisi"
+        else:
+            t_name = "Test talab etilmaydi"
     else:
         t_name = str(raw_t).strip()
 
@@ -648,7 +651,24 @@ class DocxExporter:
                 elif c_idx in (3, 4):
                     run.font.color.rgb = RGBColor(30, 41, 59)
 
-        for item in items:
+        # Agar vakansiyalar soni ko'p bo'lsa (masalan 150 tadan ortiq),
+        # umumiy jadvalda BARCHA vakansiyalar to'liq saqlanadi (100%),
+        # batafsil tavsif bloklari esa dastlabki 100 ta uchun shakllantiriladi.
+        detailed_items = items if len(items) <= 150 else items[:100]
+        if len(items) > 150:
+            p_note = doc.add_paragraph()
+            p_note.paragraph_format.space_before = Pt(14)
+            p_note.paragraph_format.space_after = Pt(8)
+            r_note = p_note.add_run(
+                f"ℹ️ Eslatma: Jami {len(items):,} ta vakansiyaning to'liq reyestri yuqoridagi umumiy jadvalda keltirilgan. "
+                f"Quyida dastlabki {len(detailed_items)} ta vakansiyaning batafsil tavsifi keltirilgan. "
+                f"Har bir vakansiyaning to'liq ma'lumotnomasini web-platformada 'Word (.docx)' tugmasi orqali alohida ochishingiz mumkin."
+            )
+            r_note.font.size = Pt(9.5)
+            r_note.font.italic = True
+            r_note.font.color.rgb = RGBColor(100, 116, 139)
+
+        for item in detailed_items:
             self._write_vacancy_block(doc, item, is_first=False)
 
         if not filename:
@@ -662,7 +682,7 @@ class DocxExporter:
         doc.save(filepath)
         try:
             meta_path = filepath + ".json"
-            card_items = [format_vacancy_card_data(it) for it in items]
+            card_items = [format_vacancy_card_data(it) for it in items[:250]]
             with open(meta_path, "w", encoding="utf-8") as mf:
                 json.dump(card_items, mf, ensure_ascii=False, indent=2)
         except Exception:
@@ -902,20 +922,28 @@ class ArgosApiClient:
         return 'list', search_payload
 
 
-    def get_vacancy_list(self, payload: Optional[Dict[str, Any]] = None, page: int = 0, page_size: int = 40) -> Dict[str, Any]:
+    def get_vacancy_list(self, payload: Optional[Dict[str, Any]] = None, page: int = 0, page_size: int = 40, retries: int = 3) -> Dict[str, Any]:
         data = dict(payload or {})
         data["page"] = page
         data["pageSize"] = min(page_size, 40)
-        resp = self.session.post(API_LIST_ENDPOINT, json=data, timeout=10)
-        resp.raise_for_status()
-        return resp.json()
+        last_err = None
+        for attempt in range(retries + 1):
+            try:
+                resp = self.session.post(API_LIST_ENDPOINT, json=data, timeout=20)
+                resp.raise_for_status()
+                return resp.json()
+            except Exception as e:
+                last_err = e
+                if attempt < retries:
+                    time.sleep(0.4 * (attempt + 1))
+        raise last_err or Exception(f"Vakansiyalar ro'yxati (sahifa #{page}) yuklanmadi")
 
     def get_vacancy_detail(self, vacancy_id: int, retries: int = 2) -> Dict[str, Any]:
         url = f"{API_DETAIL_ENDPOINT}?id={vacancy_id}&isView=false"
         last_err = None
         for attempt in range(retries + 1):
             try:
-                resp = self.session.post(url, timeout=8)
+                resp = self.session.post(url, timeout=10)
                 resp.raise_for_status()
                 data = resp.json()
                 test_code = data.get("testTypeCode")
@@ -949,7 +977,7 @@ class ArgosApiClient:
         elif target_code in (1225, 1226) and payload.get("fatherOrganizationId") is None and payload.get("civilServant") is None:
             payload["fatherOrganizationId"] = 1052
 
-        first_resp = self.get_vacancy_list(payload, page=page, page_size=page_size)
+        first_resp = self.get_vacancy_list(payload, page=page, page_size=page_size, retries=4)
         total_count = first_resp.get("count", 0)
         results = first_resp.get("results", [])
 
@@ -973,7 +1001,7 @@ class ArgosApiClient:
                 return None
 
             try:
-                detail = self.get_vacancy_detail(vac_id)
+                detail = self.get_vacancy_detail(vac_id, retries=2)
                 t_code = detail.get("testTypeCode")
                 t_name = detail.get("test_type_name", "")
 
@@ -999,7 +1027,8 @@ class ArgosApiClient:
 
                 return detail
             except Exception:
-                return None
+                # Agar detail so'rovi uzilsa ham asosiy ro'yxat ma'lumotini yo'qotmaymiz
+                return item
 
         with ThreadPoolExecutor(max_workers=10) as executor:
             while True:
@@ -1015,15 +1044,38 @@ class ArgosApiClient:
 
                 scanned_so_far = min((page + 1) * page_size, total_count)
 
-                futures = [executor.submit(fetch_and_check, it) for it in results]
-                for fut in as_completed(futures):
-                    if stop_check and stop_check():
-                        break
-                    res = fut.result()
-                    if res:
-                        collected.append(res)
+                if has_filter:
+                    futures = [executor.submit(fetch_and_check, it) for it in results]
+                    for fut in as_completed(futures):
+                        if stop_check and stop_check():
+                            break
+                        res = fut.result()
+                        if res:
+                            collected.append(res)
+                            if progress_callback:
+                                card_item = format_vacancy_card_data(res)
+                                progress_callback({
+                                    "type": "found",
+                                    "count": len(collected),
+                                    "card": card_item,
+                                    "id": card_item["id"],
+                                    "position": card_item["position_name"],
+                                    "organization": card_item["organization"],
+                                    "region": card_item["region_only"],
+                                    "district": card_item["district_only"],
+                                    "test_type": card_item["test_type_name"],
+                                    "cur": scanned_so_far,
+                                    "tot": total_count
+                                })
+                            if max_items and len(collected) >= max_items:
+                                break
+                else:
+                    for it in results:
+                        if stop_check and stop_check():
+                            break
+                        collected.append(it)
                         if progress_callback:
-                            card_item = format_vacancy_card_data(res)
+                            card_item = format_vacancy_card_data(it)
                             progress_callback({
                                 "type": "found",
                                 "count": len(collected),
@@ -1057,8 +1109,12 @@ class ArgosApiClient:
 
                 page += 1
                 try:
-                    next_resp = self.get_vacancy_list(payload, page=page, page_size=page_size)
+                    next_resp = self.get_vacancy_list(payload, page=page, page_size=page_size, retries=4)
                     results = next_resp.get("results", [])
+                    if not results and (page * page_size) < total_count:
+                        time.sleep(0.5)
+                        next_resp = self.get_vacancy_list(payload, page=page, page_size=page_size, retries=4)
+                        results = next_resp.get("results", [])
                 except Exception as e:
                     if progress_callback:
                         progress_callback({
@@ -1067,7 +1123,15 @@ class ArgosApiClient:
                             "cur": scanned_so_far,
                             "tot": total_count
                         })
-                    break
+                    if (page + 1) * page_size < total_count:
+                        page += 1
+                        try:
+                            next_resp = self.get_vacancy_list(payload, page=page, page_size=page_size, retries=4)
+                            results = next_resp.get("results", [])
+                        except Exception:
+                            break
+                    else:
+                        break
 
         if max_items and len(collected) > max_items:
             collected = collected[:max_items]
@@ -1453,15 +1517,30 @@ def scan_vacancies():
             yield f"data: {json.dumps({'type': 'done_empty', 'message': 'Belgilangan shartlarga mos vakansiyalar topilmadi.'})}\n\n"
             return
 
-        yield f"data: {json.dumps({'type': 'status', 'message': f'Word (.docx) hujjati yaratilmoqda ({len(collected_items)} ta vakansiya)...', 'cur': len(collected_items), 'tot': len(collected_items)})}\n\n"
+        yield f"data: {json.dumps({'type': 'status', 'message': f'Word (.docx) hujjati yaratilmoqda ({len(collected_items):,} ta vakansiya)...', 'cur': len(collected_items), 'tot': len(collected_items)})}\n\n"
 
-        try:
-            filepath = docx_exporter.export_multiple_vacancies(collected_items)
-            fname = os.path.basename(filepath)
-            cards_list = [format_vacancy_card_data(it) for it in collected_items]
-            yield f"data: {json.dumps({'type': 'done', 'filename': fname, 'count': len(collected_items), 'docx_url': f'/api/docx-raw/{fname}', 'preview_url': f'/api/preview/{fname}', 'vacancies': cards_list, 'message': f'Muvaffaqiyatli saqlandi: {len(collected_items)} ta vakansiya'})}\n\n"
-        except Exception as e:
-            yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
+        doc_result = {}
+        def _build_doc():
+            try:
+                fp = docx_exporter.export_multiple_vacancies(collected_items)
+                doc_result["filepath"] = fp
+            except Exception as ex:
+                doc_result["error"] = str(ex)
+
+        doc_thread = threading.Thread(target=_build_doc, daemon=True)
+        doc_thread.start()
+
+        while doc_thread.is_alive():
+            yield ": ping\n\n"
+            time.sleep(0.5)
+
+        if "error" in doc_result:
+            yield f"data: {json.dumps({'type': 'error', 'message': doc_result['error']})}\n\n"
+            return
+
+        filepath = doc_result.get("filepath")
+        fname = os.path.basename(filepath) if filepath else ""
+        yield f"data: {json.dumps({'type': 'done', 'filename': fname, 'count': len(collected_items), 'docx_url': f'/api/docx-raw/{fname}', 'preview_url': f'/api/preview/{fname}', 'message': f'Muvaffaqiyatli saqlandi: {len(collected_items):,} ta vakansiya'})}\n\n"
 
     return Response(event_stream(), mimetype="text/event-stream")
 
