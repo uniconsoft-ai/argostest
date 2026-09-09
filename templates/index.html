@@ -35,7 +35,7 @@
   </script>
 
   <!-- Maxsus Uslublar -->
-  <link rel="stylesheet" href="/static/css/style.css?v=2.0.3">
+  <link rel="stylesheet" href="/static/css/style.css?v=2.0.4">
 
   <!-- Mahaliy Word Rendering Kutubxonalari (Oflayn) -->
   <script src="/static/js/jszip.min.js"></script>
@@ -59,7 +59,7 @@
       
       <!-- Chap tomon: Logo va Tizim Nomi (Lokal Server) -->
       <div class="flex items-center space-x-2.5 sm:space-x-3.5 shrink-0">
-        <a href="/" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 p-1 flex items-center justify-center shadow-2xs hover:shadow-xs transition shrink-0" title="ARGOS - Bosh sahifa">
+        <a href="https://argostest.web.app" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 p-1 flex items-center justify-center shadow-2xs hover:shadow-xs transition shrink-0 hover:scale-105" title="argostest.web.app">
           <img src="/static/img/emblem.svg" alt="O'zbekiston Respublikasi Davlat Gerbi" class="w-full h-full object-contain">
         </a>
         <div>
@@ -288,20 +288,19 @@
     <!-- CHAP USTUN: FILTRLAR PANELI (vacancy.argos.uz 100% rasmiy ko'rinish) -->
     <!-- ====================================================================== -->
     <aside id="filter-sidebar" class="hidden lg:block w-full lg:w-[275px] xl:w-[290px] shrink-0 sticky lg:top-20 z-30 transition-all">
-      <div class="bg-[#f8fafd] dark:bg-slate-800/90 rounded-2xl border border-slate-200/70 dark:border-slate-700/70 p-4 sm:p-5 shadow-xs space-y-4 max-h-none lg:max-h-[calc(100vh-6rem)] overflow-y-auto custom-sidebar-scroll">
+      <div class="argos-aside max-h-none lg:max-h-[calc(100vh-6rem)] overflow-y-auto custom-sidebar-scroll">
         
         <!-- 1. Hudud & Tuman/shahar -->
-        <div>
-          <label for="filter-region" class="block text-sm font-bold text-slate-800 dark:text-slate-100 mb-1.5">
+        <div class="argos-aside__item">
+          <label for="filter-region" class="argos-aside__label">
             Hudud
           </label>
-          <div class="relative">
-            <select id="filter-region" 
-              class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 pr-9 text-sm text-slate-700 dark:text-slate-200 appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 shadow-xs cursor-pointer transition">
+          <div class="argos-select-wrapper">
+            <select id="filter-region" class="argos-select">
               <option value="" disabled selected hidden>Hududni tanlang</option>
               <option value="">Barchasi</option>
             </select>
-            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400">
+            <div class="argos-select-arrow">
               <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="6 9 12 15 18 9"></polyline>
               </svg>
@@ -309,13 +308,12 @@
           </div>
 
           <!-- Tuman/shahar (to'g'ridan-to'g'ri Hudud ostida, labelsiz) -->
-          <div class="relative mt-2.5">
-            <select id="filter-district" disabled
-              class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 pr-9 text-sm text-slate-700 dark:text-slate-200 appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 shadow-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition">
+          <div class="argos-select-wrapper mt-2">
+            <select id="filter-district" disabled class="argos-select">
               <option value="" disabled selected hidden>Tuman/shaharni tanlang</option>
               <option value="">Barchasi</option>
             </select>
-            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400">
+            <div class="argos-select-arrow">
               <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="6 9 12 15 18 9"></polyline>
               </svg>
@@ -324,17 +322,16 @@
         </div>
 
         <!-- 2. Tashkilotlar -->
-        <div>
-          <label for="filter-org" class="block text-sm font-bold text-slate-800 dark:text-slate-100 mb-1.5">
+        <div class="argos-aside__item">
+          <label for="filter-org" class="argos-aside__label">
             Tashkilotlar
           </label>
-          <div class="relative">
-            <select id="filter-org" 
-              class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 pr-9 text-sm text-slate-700 dark:text-slate-200 appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 shadow-xs cursor-pointer transition">
+          <div class="argos-select-wrapper">
+            <select id="filter-org" class="argos-select">
               <option value="" disabled selected hidden>Tashkilotni tanlang</option>
               <option value="">Barchasi</option>
             </select>
-            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400">
+            <div class="argos-select-arrow">
               <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="6 9 12 15 18 9"></polyline>
               </svg>
@@ -343,19 +340,18 @@
         </div>
 
         <!-- 3. Lavozim turi -->
-        <div>
-          <label for="filter-direction" class="block text-sm font-bold text-slate-800 dark:text-slate-100 mb-1.5">
+        <div class="argos-aside__item">
+          <label for="filter-direction" class="argos-aside__label">
             Lavozim turi
           </label>
-          <div class="relative">
-            <select id="filter-direction" 
-              class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 pr-9 text-sm text-slate-700 dark:text-slate-200 appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 shadow-xs cursor-pointer transition">
+          <div class="argos-select-wrapper">
+            <select id="filter-direction" class="argos-select">
               <option value="" selected>Barchasi</option>
               <option value="1">Sogliqni saqlash</option>
               <option value="2">Davlat fuqarolik xizmatchisi</option>
               <option value="3">Boshqalar</option>
             </select>
-            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400">
+            <div class="argos-select-arrow">
               <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="6 9 12 15 18 9"></polyline>
               </svg>
@@ -364,26 +360,25 @@
         </div>
 
         <!-- 4. Tanlov turlari -->
-        <div>
-          <label for="filter-choice" class="block text-sm font-bold text-slate-800 dark:text-slate-100 mb-1.5">
+        <div class="argos-aside__item">
+          <label for="filter-choice" class="argos-aside__label">
             Tanlov turlari
           </label>
-          <div class="relative flex items-center">
-            <select id="filter-choice" 
-              class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 pr-14 text-sm text-slate-700 dark:text-slate-200 appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 shadow-xs cursor-pointer transition">
+          <div class="argos-select-wrapper flex items-center">
+            <select id="filter-choice" class="argos-select pr-12">
               <option value="" selected>Barchasi</option>
               <option value="0">Tashqi tanlov</option>
               <option value="1">Ichki tanlov(tashkilot doirasida)</option>
               <option value="2">Ichki tanlov(barcha DFX tashkilotlar doirasida)</option>
             </select>
-            <div class="absolute inset-y-0 right-0 flex items-center pr-3 space-x-1.5">
-              <button type="button" id="btn-clear-choice" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs p-0.5 rounded cursor-pointer" title="Tozalash">
+            <div class="absolute inset-y-0 right-0 flex items-center pr-2.5 space-x-1">
+              <button type="button" id="btn-clear-choice" class="argos-btn-clear-choice" title="Tozalash">
                 <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                   <line x1="18" y1="6" x2="6" y2="18"></line>
                   <line x1="6" y1="6" x2="18" y2="18"></line>
                 </svg>
               </button>
-              <div class="pointer-events-none text-slate-400">
+              <div class="argos-select-arrow !static !right-auto !top-auto !translate-y-0">
                 <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>
@@ -393,13 +388,12 @@
         </div>
 
         <!-- 5. Test turi -->
-        <div>
-          <label for="filter-test-type" class="block text-sm font-bold text-slate-800 dark:text-slate-100 mb-1.5">
+        <div class="argos-aside__item">
+          <label for="filter-test-type" class="argos-aside__label">
             Test turi
           </label>
-          <div class="relative">
-            <select id="filter-test-type" 
-              class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 pr-9 text-sm text-slate-700 dark:text-slate-200 appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 shadow-xs cursor-pointer transition">
+          <div class="argos-select-wrapper">
+            <select id="filter-test-type" class="argos-select">
               <option value="" selected>Barchasi</option>
               <option value="dfx_all">Davlat fuqarolik xizmati (Barchasi)</option>
               <option value="4">Davlat fuqarolik xizmatchisi (Boshqaruv xodimi)</option>
@@ -408,7 +402,7 @@
               <option value="1226">Shifokorlar uchun</option>
               <option value="0">Test talab etilmaydi</option>
             </select>
-            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400">
+            <div class="argos-select-arrow">
               <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="6 9 12 15 18 9"></polyline>
               </svg>
@@ -417,13 +411,12 @@
         </div>
 
         <!-- 6. Lavozim darajasi -->
-        <div>
-          <label for="filter-degree" class="block text-sm font-bold text-slate-800 dark:text-slate-100 mb-1.5">
+        <div class="argos-aside__item">
+          <label for="filter-degree" class="argos-aside__label">
             Lavozim darajasi
           </label>
-          <div class="relative">
-            <select id="filter-degree" 
-              class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 pr-9 text-sm text-slate-700 dark:text-slate-200 appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 shadow-xs cursor-pointer transition">
+          <div class="argos-select-wrapper">
+            <select id="filter-degree" class="argos-select">
               <option value="" disabled selected hidden>Lavozim darajasini tanl...</option>
               <option value="">Barchasi</option>
               <option value="5">Milliy</option>
@@ -432,7 +425,7 @@
               <option value="4">Tuman</option>
               <option value="2">Fillial</option>
             </select>
-            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400">
+            <div class="argos-select-arrow">
               <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="6 9 12 15 18 9"></polyline>
               </svg>
@@ -441,13 +434,12 @@
         </div>
 
         <!-- 7. Minimal mehnat staji -->
-        <div>
-          <label for="filter-exp" class="block text-sm font-bold text-slate-800 dark:text-slate-100 mb-1.5">
+        <div class="argos-aside__item">
+          <label for="filter-exp" class="argos-aside__label">
             Minimal mehnat staji
           </label>
-          <div class="relative">
-            <select id="filter-exp" 
-              class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 pr-9 text-sm text-slate-700 dark:text-slate-200 appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 shadow-xs cursor-pointer transition">
+          <div class="argos-select-wrapper">
+            <select id="filter-exp" class="argos-select">
               <option value="" disabled selected hidden>Minimal stajini tanlang</option>
               <option value="">Barchasi</option>
               <option value="0">Mehnat staji talab etilmaydi</option>
@@ -458,7 +450,7 @@
               <option value="5">5 yil</option>
               <option value="6">5 yil yoki undan ortiq</option>
             </select>
-            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400">
+            <div class="argos-select-arrow">
               <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="6 9 12 15 18 9"></polyline>
               </svg>
@@ -467,13 +459,12 @@
         </div>
 
         <!-- 8. Ish haqi -->
-        <div>
-          <label for="filter-salary" class="block text-sm font-bold text-slate-800 dark:text-slate-100 mb-1.5">
+        <div class="argos-aside__item">
+          <label for="filter-salary" class="argos-aside__label">
             Ish haqi
           </label>
-          <div class="relative">
-            <select id="filter-salary" 
-              class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 pr-9 text-sm text-slate-700 dark:text-slate-200 appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 shadow-xs cursor-pointer transition">
+          <div class="argos-select-wrapper">
+            <select id="filter-salary" class="argos-select">
               <option value="" disabled selected hidden>Ish haqini tanlang</option>
               <option value="">Farq qilmaydi</option>
               <option value="1500000">1 500 000 dan</option>
@@ -483,7 +474,7 @@
               <option value="5500000">5 500 000 dan</option>
               <option value="6500000">6 500 000 dan</option>
             </select>
-            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400">
+            <div class="argos-select-arrow">
               <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="6 9 12 15 18 9"></polyline>
               </svg>
@@ -492,20 +483,18 @@
         </div>
 
         <!-- 9. Nogironligi bo'lgan shaxslar uchun -->
-        <div class="pt-1">
-          <label class="inline-flex items-center space-x-2.5 cursor-pointer select-none">
-            <input type="checkbox" id="filter-disability" 
-              class="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-blue-500 cursor-pointer accent-blue-600">
-            <span class="text-sm font-medium text-slate-700 dark:text-slate-300">
+        <div class="argos-aside__item no-border pt-2 pb-1">
+          <label class="argos-checkbox-wrapper">
+            <input type="checkbox" id="filter-disability" class="argos-checkbox">
+            <span class="text-sm font-medium text-slate-700 dark:text-slate-200">
               Nogironligi bo'lgan shaxslar uchun
             </span>
           </label>
         </div>
 
         <!-- 10. Filtrni tozalash -->
-        <div class="pt-2 border-t border-slate-200/60 dark:border-slate-700/60">
-          <button type="button" id="btn-clear-all-filters" 
-            class="w-full py-2.5 px-3 text-xs font-semibold rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 hover:border-rose-300 dark:hover:border-rose-800 transition cursor-pointer flex items-center justify-center shadow-2xs">
+        <div class="pt-2">
+          <button type="button" id="btn-clear-all-filters" class="argos-btn-reset">
             <span>Filtrni tozalash</span>
           </button>
         </div>
@@ -539,19 +528,30 @@
             </button>
           </div>
 
-          <!-- Skanerlash va Boshqaruv tugmalari -->
-          <div class="flex items-center gap-2 w-full sm:w-auto shrink-0">
+          <!-- Skanerlash va Boshqaruv tugmalari (Task 2: Faqat Lupa icon, text ko'rinmaydi) -->
+          <div class="flex items-center gap-2 w-full sm:w-auto shrink-0 justify-end">
             <button type="button" id="btn-search-top"
-              class="flex-1 sm:flex-none px-5 sm:px-6 py-2.5 text-xs sm:text-sm font-bold rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white shadow-xs shadow-blue-500/20 transition flex items-center justify-center space-x-2 cursor-pointer whitespace-nowrap"
-              title="Kalit so'z va barcha tanlangan filtrlar bo'yicha saralab skanerlash va Word (.docx) to'plami yaratish">
-              <span id="btn-search-top-icon">🚀</span>
-              <span id="btn-search-top-text">Skanerlash</span>
+              class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-[#3165cb] hover:bg-blue-700 active:bg-blue-800 text-white shadow-xs shadow-blue-500/20 transition-all duration-200 flex items-center justify-center cursor-pointer shrink-0 hover:scale-105 active:scale-95"
+              title="Skanerlash"
+              aria-label="Skanerlash">
+              <span id="btn-search-top-icon" class="flex items-center justify-center">
+                <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M11.0833 18.4167C15.1334 18.4167 18.4167 15.1334 18.4167 11.0833C18.4167 7.03325 15.1334 3.75 11.0833 3.75C7.03325 3.75 3.75 7.03325 3.75 11.0833C3.75 15.1334 7.03325 18.4167 11.0833 18.4167Z" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M20.2502 20.25L16.2627 16.2625" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </span>
+              <span id="btn-search-top-text" class="hidden"></span>
             </button>
 
             <button type="button" id="btn-stop-top" disabled
-              class="px-3.5 py-2.5 text-xs font-semibold rounded-xl bg-rose-50 text-rose-700 hover:bg-rose-100 dark:bg-rose-900/40 dark:text-rose-300 border border-rose-200 dark:border-rose-800 transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shrink-0"
-              title="Skanerlash jarayonini to'xtatish">
-              <span id="btn-stop-top-icon">⏹️</span>
+              class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-rose-50 text-rose-700 hover:bg-rose-100 dark:bg-rose-900/40 dark:text-rose-300 border border-rose-200 dark:border-rose-800 transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shrink-0 flex items-center justify-center hover:scale-105 active:scale-95"
+              title="Skanerlash jarayonini to'xtatish"
+              aria-label="To'xtatish">
+              <span id="btn-stop-top-icon" class="flex items-center justify-center">
+                <svg class="w-4 h-4 text-rose-600 dark:text-rose-400" viewBox="0 0 24 24" fill="currentColor">
+                  <rect x="5" y="5" width="14" height="14" rx="2"/>
+                </svg>
+              </span>
             </button>
           </div>
         </div>
@@ -1892,8 +1892,14 @@
       if (btnSearchTop) {
         btnSearchTop.disabled = true;
         btnSearchTop.classList.add("opacity-60", "cursor-not-allowed");
-        if (btnSearchTopIcon) btnSearchTopIcon.textContent = "⏳";
-        if (btnSearchTopText) btnSearchTopText.textContent = "Skanerlanmoqda...";
+        if (btnSearchTopIcon) {
+          btnSearchTopIcon.innerHTML = `
+            <svg class="animate-spin w-5 h-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3.5"></circle>
+              <path class="opacity-90" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>`;
+        }
+        if (btnSearchTopText) btnSearchTopText.textContent = "";
       }
       if (btnStopTop) {
         btnStopTop.disabled = false;
@@ -2088,8 +2094,14 @@
       if (btnSearchTop) {
         btnSearchTop.disabled = false;
         btnSearchTop.classList.remove("opacity-60", "cursor-not-allowed");
-        if (btnSearchTopIcon) btnSearchTopIcon.textContent = "🚀";
-        if (btnSearchTopText) btnSearchTopText.textContent = "Skanerlash";
+        if (btnSearchTopIcon) {
+          btnSearchTopIcon.innerHTML = `
+            <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M11.0833 18.4167C15.1334 18.4167 18.4167 15.1334 18.4167 11.0833C18.4167 7.03325 15.1334 3.75 11.0833 3.75C7.03325 3.75 3.75 7.03325 3.75 11.0833C3.75 15.1334 7.03325 18.4167 11.0833 18.4167Z" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M20.2502 20.25L16.2627 16.2625" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>`;
+        }
+        if (btnSearchTopText) btnSearchTopText.textContent = "";
       }
       if (btnStopTop) {
         btnStopTop.disabled = true;

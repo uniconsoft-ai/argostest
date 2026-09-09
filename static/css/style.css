@@ -485,3 +485,225 @@ html {
   overflow-wrap: break-word !important;
 }
 
+/* ==========================================================================
+   ARGOS RASMIY CHAP FILTRLAR VA ANIMATSIYALAR (vacancy.argos.uz 100% mos)
+   ========================================================================== */
+
+.argos-aside {
+  background: #f3f5fb;
+  border-radius: 12px;
+  padding: 4px 18px 16px 18px;
+  border: 1px solid rgba(121, 131, 142, 0.18);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dark .argos-aside {
+  background: linear-gradient(98.89deg, #131b4b -13.21%, #121e64 94.15%) !important;
+  border: 1.35px solid #a2ade8;
+  color: #fff !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+}
+
+.argos-aside__item {
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(121, 131, 142, 0.2);
+  transition: border-color 0.2s ease;
+}
+
+.argos-aside__item:last-child,
+.argos-aside__item.no-border {
+  border-bottom: none !important;
+}
+
+.argos-aside__label {
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 20px;
+  color: #26292e;
+  margin-bottom: 8px;
+  display: block;
+  transition: color 0.2s ease;
+}
+
+.dark .argos-aside__label {
+  color: #ffffff !important;
+}
+
+/* Argos PrimeNG/Element select uslublari va animatsiyalari */
+.argos-select-wrapper {
+  position: relative;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.argos-select {
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid #dcdfe6;
+  border-radius: 8px;
+  padding: 9px 36px 9px 12px;
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: #26292e;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  cursor: pointer;
+  transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.dark .argos-select {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1.2px solid rgba(162, 173, 232, 0.35);
+  color: #ffffff;
+}
+
+.dark .argos-select option {
+  background-color: #131b4b;
+  color: #ffffff;
+}
+
+.argos-select:hover:not(:disabled) {
+  border-color: #3165cb;
+  box-shadow: 0 0 0 3px rgba(49, 101, 203, 0.1);
+  transform: translateY(-0.5px);
+}
+
+.dark .argos-select:hover:not(:disabled) {
+  border-color: #a2ade8;
+  box-shadow: 0 0 0 3px rgba(162, 173, 232, 0.2);
+}
+
+.argos-select:focus {
+  outline: none;
+  border-color: #3165cb;
+  box-shadow: 0 0 0 3.5px rgba(49, 101, 203, 0.18);
+}
+
+.dark .argos-select:focus {
+  border-color: #a2ade8;
+  box-shadow: 0 0 0 3.5px rgba(162, 173, 232, 0.3);
+}
+
+.argos-select:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  background-color: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+.dark .argos-select:disabled {
+  background-color: rgba(255, 255, 255, 0.02);
+  border-color: rgba(162, 173, 232, 0.15);
+}
+
+/* Strelka (chevron) animatsiyasi */
+.argos-select-arrow {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #79838e;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.argos-select-wrapper:focus-within .argos-select-arrow {
+  color: #3165cb;
+  transform: translateY(-50%) rotate(180deg);
+}
+
+.dark .argos-select-wrapper:focus-within .argos-select-arrow {
+  color: #a2ade8;
+}
+
+/* Tozalash x tugmasi animatsiyasi */
+.argos-btn-clear-choice {
+  transition: all 0.2s ease;
+  padding: 3px;
+  border-radius: 6px;
+  color: #79838e;
+}
+.argos-btn-clear-choice:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  transform: scale(1.15);
+}
+
+/* Checkbox animatsiyasi */
+.argos-checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 0;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.15s ease;
+}
+
+.argos-checkbox-wrapper:hover {
+  transform: translateX(2px);
+}
+
+.argos-checkbox {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  border: 1.5px solid #79838e;
+  accent-color: #3165cb;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.argos-checkbox:hover {
+  border-color: #3165cb;
+  box-shadow: 0 0 0 2.5px rgba(49, 101, 203, 0.15);
+}
+
+/* Filtrni tozalash tugmasi animatsiyasi */
+.argos-btn-reset {
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #79838e;
+  background: #ffffff;
+  border: 1px solid rgba(121, 131, 142, 0.3);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.dark .argos-btn-reset {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(162, 173, 232, 0.3);
+  color: #a2ade8;
+}
+
+.argos-btn-reset:hover {
+  color: #dc2626;
+  border-color: #fca5a5;
+  background: #fef2f2;
+  transform: translateY(-1.5px);
+  box-shadow: 0 3px 8px rgba(220, 38, 38, 0.12);
+}
+
+.dark .argos-btn-reset:hover {
+  color: #f87171;
+  border-color: #f87171;
+  background: rgba(220, 38, 38, 0.15);
+}
+
+.argos-btn-reset:active {
+  transform: translateY(0);
+}
+
