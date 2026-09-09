@@ -484,16 +484,60 @@ html {
   }
 }
 
-/* Suzuvchi Yuqoriga Tugmasi */
-#btn-back-to-top {
-  transition: opacity 0.25s ease, transform 0.2s ease;
-  bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
-  right: calc(1.25rem + env(safe-area-inset-right, 0px));
+/* ==========================================================================
+   SUZUVCHI PIN QILINGAN BOSHQARUV (SCROLL UP/DOWN & TELEGRAM)
+   ========================================================================== */
+#floating-actions-container {
+  bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  right: calc(1rem + env(safe-area-inset-right, 0px));
+  transition: transform 0.25s ease, opacity 0.25s ease;
+  z-index: 50;
 }
-#btn-back-to-top:hover {
-  transform: translateY(-2px);
+
+#scroll-nav-box {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(223, 230, 244, 0.9);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
 }
-#btn-back-to-top:active {
+
+body.dark #scroll-nav-box,
+.dark #scroll-nav-box {
+  background: rgba(12, 20, 69, 0.95) !important;
+  border: 1.35px solid #a2ade8 !important;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.5) !important;
+}
+
+#scroll-nav-box button {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#scroll-nav-box button:hover svg {
+  transform: scale(1.18);
+  color: #3165cb;
+}
+
+body.dark #scroll-nav-box button:hover svg,
+.dark #scroll-nav-box button:hover svg {
+  color: #a2ade8 !important;
+}
+
+#scroll-nav-box button:active svg {
+  transform: scale(0.9);
+}
+
+#floating-actions-container .footer-icon a {
+  transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.28s ease, filter 0.28s ease;
+  box-shadow: 0 4px 16px rgba(41, 182, 246, 0.35);
+}
+
+#floating-actions-container .footer-icon a:hover {
+  transform: translateY(-2px) scale(1.1);
+  box-shadow: 0 8px 24px rgba(41, 182, 246, 0.55);
+}
+
+#floating-actions-container .footer-icon a:active {
   transform: translateY(0) scale(0.95);
 }
 

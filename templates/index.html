@@ -2886,39 +2886,88 @@
         }
       }
 
-      // Suzuvchi yuqoriga qaytish tugmasi
-      const btnBackToTop = document.getElementById("btn-back-to-top");
-      if (btnBackToTop) {
-        const updateBackToTop = () => {
-          const scrollPos = window.scrollY || document.documentElement.scrollTop || (cardsView ? cardsView.scrollTop : 0);
-          if (scrollPos > 280) {
-            btnBackToTop.classList.remove("opacity-0", "pointer-events-none");
-            btnBackToTop.classList.add("opacity-100", "pointer-events-auto");
-          } else {
-            btnBackToTop.classList.add("opacity-0", "pointer-events-none");
-            btnBackToTop.classList.remove("opacity-100", "pointer-events-auto");
-          }
-        };
-        window.addEventListener("scroll", updateBackToTop, { passive: true });
-        document.addEventListener("scroll", updateBackToTop, { passive: true });
-        if (cardsView) cardsView.addEventListener("scroll", updateBackToTop, { passive: true });
-        btnBackToTop.addEventListener("click", () => {
+      // Suzuvchi yuqoriga va pastga harakatlanish boshqaruvi (Task 2)
+      const btnScrollTop = document.getElementById("btn-scroll-top");
+      const btnScrollBottom = document.getElementById("btn-scroll-bottom");
+
+      if (btnScrollTop) {
+        btnScrollTop.addEventListener("click", () => {
           window.scrollTo({ top: 0, behavior: "smooth" });
+          document.documentElement.scrollTo({ top: 0, behavior: "smooth" });
+          document.body.scrollTo({ top: 0, behavior: "smooth" });
           if (cardsView) cardsView.scrollTo({ top: 0, behavior: "smooth" });
+          if (docxContainer) docxContainer.scrollTo({ top: 0, behavior: "smooth" });
+        });
+      }
+
+      if (btnScrollBottom) {
+        btnScrollBottom.addEventListener("click", () => {
+          const maxScroll = Math.max(
+            document.body.scrollHeight,
+            document.documentElement.scrollHeight,
+            document.body.offsetHeight,
+            document.documentElement.offsetHeight,
+            document.body.clientHeight,
+            document.documentElement.clientHeight
+          );
+          window.scrollTo({ top: maxScroll, behavior: "smooth" });
+          document.documentElement.scrollTo({ top: maxScroll, behavior: "smooth" });
+          document.body.scrollTo({ top: maxScroll, behavior: "smooth" });
+          if (cardsView) cardsView.scrollTo({ top: cardsView.scrollHeight, behavior: "smooth" });
+          if (docxContainer) docxContainer.scrollTo({ top: docxContainer.scrollHeight, behavior: "smooth" });
         });
       }
     });
   </script>
 
   <!-- ======================================================================== -->
-  <!-- SUZUVCHI YUQORIGA (BACK TO TOP) TUGMASI -->
+  <!-- 5. SUZUVCHI PIN QILINGAN BOSHQARUV (SCROLL UP/DOWN & TELEGRAM) -->
   <!-- ======================================================================== -->
-  <button type="button" id="btn-back-to-top"
-    class="fixed bottom-5 right-5 z-40 w-11 h-11 rounded-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white shadow-lg transition-all duration-300 opacity-0 pointer-events-none cursor-pointer flex items-center justify-center shadow-blue-500/40"
-    title="Yuqoriga qaytish">
-    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-      <polyline points="18 15 12 9 6 15"></polyline>
-    </svg>
-  </button>
+  <div id="floating-actions-container" class="fixed right-3 sm:right-5 bottom-3 sm:bottom-5 z-50 flex flex-col items-center gap-2.5 select-none pointer-events-auto">
+    
+    <!-- Task 2: To'rtburchak ichidagi Yuqoriga va Pastga strelkalar (Scroll Navigator) -->
+    <div id="scroll-nav-box"
+      class="w-10 sm:w-11 bg-white/95 dark:bg-[#0c1445]/95 backdrop-blur-md border border-slate-200/90 dark:border-[#a2ade8]/40 rounded-xl shadow-lg shadow-slate-900/10 dark:shadow-black/40 flex flex-col items-center overflow-hidden transition-all duration-200"
+      title="Sahifa bo'ylab tezkor harakatlanish">
+      <!-- Yuqoriga strelka -->
+      <button type="button" id="btn-scroll-top"
+        class="w-10 h-10 sm:w-11 sm:h-11 flex items-center justify-center text-slate-600 dark:text-[#cfd6f3] hover:text-[#3165cb] dark:hover:text-white hover:bg-blue-50 dark:hover:bg-[#32419b] active:scale-90 transition-all cursor-pointer"
+        title="Eng yuqoriga chiqish"
+        aria-label="Eng yuqoriga chiqish">
+        <svg class="w-5 h-5 transition-transform duration-150" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="18 15 12 9 6 15"></polyline>
+        </svg>
+      </button>
+
+      <!-- Ajratuvchi nozik chiziq -->
+      <div class="w-6 h-[1px] bg-slate-200 dark:bg-[#a2ade8]/30"></div>
+
+      <!-- Pastga strelka -->
+      <button type="button" id="btn-scroll-bottom"
+        class="w-10 h-10 sm:w-11 sm:h-11 flex items-center justify-center text-slate-600 dark:text-[#cfd6f3] hover:text-[#3165cb] dark:hover:text-white hover:bg-blue-50 dark:hover:bg-[#32419b] active:scale-90 transition-all cursor-pointer"
+        title="Eng pastga tushish"
+        aria-label="Eng pastga tushish">
+        <svg class="w-5 h-5 transition-transform duration-150" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Task 1: Telegram Floating Icon (vacancy.argos.uz rasmiy standarti) -->
+    <div class="footer-icon">
+      <a href="https://t.me/us_4646" target="_blank" rel="noopener noreferrer"
+        class="w-11 h-11 sm:w-12 sm:h-12 rounded-full flex items-center justify-center shadow-lg shadow-sky-500/25 hover:shadow-sky-500/40 hover:scale-110 active:scale-95 transition-all duration-300 block relative"
+        title="Telegram orqali bog'lanish (@us_4646)"
+        aria-label="Telegram (@us_4646)">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" class="w-full h-full drop-shadow-xs">
+          <path fill="#29b6f6" d="M24 4A20 20 0 1 0 24 44A20 20 0 1 0 24 4Z"/>
+          <path fill="#fff" d="M33.95,15l-3.746,19.126c0,0-0.161,0.874-1.245,0.874c-0.576,0-0.873-0.274-0.873-0.274l-8.114-6.733 l-3.97-2.001l-5.095-1.355c0,0-0.907-0.262-0.907-1.012c0-0.625,0.933-0.923,0.933-0.923l21.316-8.468 c-0.001-0.001,0.651-0.235,1.126-0.234C33.667,14,34,14.125,34,14.5C34,14.75,33.95,15,33.95,15z"/>
+          <path fill="#b0bec5" d="M23,30.505l-3.97-2.001l1.649-9.504l8.321,8.772L23,30.505z"/>
+          <path fill="#cfd8dc" d="M19.03,28.504l-1.077,5.551c0,0-0.198,0.735,0.485,0.735c0.557,0,0.865-0.25,0.865-0.25 l3.692-3.535L19.03,28.504z"/>
+        </svg>
+      </a>
+    </div>
+
+  </div>
 </body>
 </html>
