@@ -27,10 +27,11 @@
         ]
       }
     ],
-    "rewrites": [
+    "redirects": [
       {
         "source": "**",
-        "destination": "/index.html"
+        "destination": "https://argostest.onrender.com",
+        "type": 302
       }
     ]
   }
