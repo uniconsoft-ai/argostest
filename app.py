@@ -1404,6 +1404,212 @@ app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024  # Maksimal so'rov hajmi: 2 M
 api_client = ArgosApiClient()
 docx_exporter = DocxExporter(exports_dir=EXPORTS_DIR)
 
+
+def ensure_default_exports(force: bool = False) -> List[str]:
+    """
+    Word tarixi (EXPORTS_DIR) bo'sh bo'lib qolmasligini kafolatlaydi.
+    Agar papkada kamida 2 ta .docx mavjud bo'lsa (va force=False bo'lsa), mavjud fayllarni qaytaradi.
+    Aks holda, avtomatik ravishda boy ma'lumotli va chiroyli formatlangan 3 ta rasmiy
+    Argos Word to'plami va ularning .docx.json kartalarini yaratadi.
+    """
+    os.makedirs(EXPORTS_DIR, exist_ok=True)
+    existing_docx = glob.glob(os.path.join(EXPORTS_DIR, "*.docx"))
+    if not force and len(existing_docx) >= 2:
+        return [os.path.basename(p) for p in existing_docx]
+
+    created_files = []
+
+    # 1. Toshkent shahri davlat soliq va statistika mutaxassislari to'plami
+    sample_set_1 = [
+        {
+            "id": 142101,
+            "position_name": "Bosh davlat soliq inspektori",
+            "organization": "O'zbekiston Respublikasi Vazirlar Mahkamasi huzuridagi Soliq qo'mitasi Toshkent shahar boshqarmasi",
+            "structure_name": "Soliq tushumlari tahlili va monitoring bo'limi",
+            "region": "Toshkent shahri, Mirobod tumani",
+            "position_salary": "4 500 000 - 7 500 000",
+            "position_rate": 1.0,
+            "experience": 1,
+            "test_type_name": "Davlat fuqarolik xizmatchisi (Mutaxassis)",
+            "test_type_id": 5,
+            "is_dfx": True,
+            "date_start": "2026-09-01T09:00:00",
+            "date_stop": "2026-09-25T18:00:00",
+            "requirements": "Iqtisodiyot, moliya yoki soliq ishi yo'nalishida oliy ma'lumot (bakalavr/magistr). Soliq qonunchiligi bo'yicha mustahkam bilim va davlat xizmatida kamida 1 yillik ish tajribasi. Kompyuter savodxonligi (MS Office, 1C, Soliq axborot tizimlari).",
+            "duties": "Yuridik va jismoniy shaxslar soliq tushumlarini tahlil qilish, soliq qarzlarini undirish choralarini ko'rish, soliq to'lovchilar bilan huquqiy tushuntirish ishlarini olib borish va elektron soliq hisobotlari to'g'riligini tekshirish.",
+            "work_conditions": "Haftada 5 ish kuni (09:00 dan 18:00 gacha), zamonaviy jihozlangan xizmat xonasi, qonunchilikda belgilangan barcha ijtimoiy kafolatlar va rag'batlantirish to'lovlari.",
+            "vacant_count": 1,
+            "views_count": 248,
+            "likesCount": 18,
+            "get_candidates_count": 5
+        },
+        {
+            "id": 142102,
+            "position_name": "Yetakchi mutaxassis",
+            "organization": "O'zbekiston Respublikasi Prezidenti huzuridagi Statistika agentligi Toshkent shahar boshqarmasi",
+            "structure_name": "Sanoat va investitsiyalar statistikasi bo'limi",
+            "region": "Toshkent shahri, Chilonzor tumani",
+            "position_salary": "3 800 000 - 5 600 000",
+            "position_rate": 1.0,
+            "experience": 0,
+            "test_type_name": "Davlat fuqarolik xizmatchisi (Mutaxassis)",
+            "test_type_id": 5,
+            "is_dfx": True,
+            "date_start": "2026-09-02T09:00:00",
+            "date_stop": "2026-09-28T18:00:00",
+            "requirements": "Statistika, iqtisodiyot, ekonometrika yoki amaliy matematika yo'nalishida oliy ma'lumot. Tahliliy fikrlash, katta hajmdagi raqamli ma'lumotlar (Excel, SPSS, Python/R) bilan ishlash qobiliyati.",
+            "duties": "Korxona va tashkilotlarning statistik hisobotlarini qabul qilish, ularning to'liqligi va ishonchliligini tahlil qilish, shahar va tumanlar kesimida jamlama jadvallarni shakllantirish.",
+            "work_conditions": "To'liq bandlik, 5 kunlik ish haftasi, malaka oshirish kurslarida muntazam qatnashish imkoniyati.",
+            "vacant_count": 1,
+            "views_count": 192,
+            "likesCount": 12,
+            "get_candidates_count": 3
+        },
+        {
+            "id": 142103,
+            "position_name": "Axborot-kommunikatsiya texnologiyalari bosh mutaxassisi",
+            "organization": "Toshkent shahar Yunusobod tumani hokimligi",
+            "structure_name": "Raqamlashtirish va AKTni rivojlantirish sho'basi",
+            "region": "Toshkent shahri, Yunusobod tumani",
+            "position_salary": "5 200 000 - 8 000 000",
+            "position_rate": 1.0,
+            "experience": 1,
+            "test_type_name": "Davlat fuqarolik xizmatchisi (Mutaxassis)",
+            "test_type_id": 5,
+            "is_dfx": True,
+            "date_start": "2026-09-03T09:00:00",
+            "date_stop": "2026-09-30T18:00:00",
+            "requirements": "Axborot texnologiyalari, axborot xavfsizligi yoki dasturiy ta'minot bo'yicha oliy ma'lumot. Tarmoq boshqaruvi, serverlar bilan ishlash, davlat xizmatlari integratsiyasi bo'yicha bilim.",
+            "duties": "Hokimlik apparati va tuman bo'limlarida axborot tizimlarining uzluksiz ishlashini ta'minlash, kiberxavfsizlik choralarini ko'rish, ijro.gov.uz va id.egov.uz tizimlari bilan ishlash.",
+            "work_conditions": "Zamonaviy IT infratuzilma, qulay mehnat sharoitlari, mehnat qonunchiligiga muvofiq barcha imtiyozlar.",
+            "vacant_count": 1,
+            "views_count": 315,
+            "likesCount": 24,
+            "get_candidates_count": 8
+        }
+    ]
+
+    # 2. Iqtisodiyot va Raqamli texnologiyalar vazirligi boshqaruv xodimlari to'plami
+    sample_set_2 = [
+        {
+            "id": 142201,
+            "position_name": "Bo'lim boshlig'i",
+            "organization": "O'zbekiston Respublikasi Iqtisodiyot va moliya vazirligi",
+            "structure_name": "Davlat byudjeti daromadlarini rejalashtirish boshqarmasi",
+            "region": "Toshkent shahri, Islom Karimov ko'chasi",
+            "position_salary": "8 500 000 - 15 000 000",
+            "position_rate": 1.0,
+            "experience": 3,
+            "test_type_name": "Davlat fuqarolik xizmatchisi (Boshqaruv xodimi)",
+            "test_type_id": 4,
+            "is_dfx": True,
+            "date_start": "2026-09-04T09:00:00",
+            "date_stop": "2026-09-26T18:00:00",
+            "requirements": "Oliy iqtisodiy yoki moliyaviy ma'lumot (magistratura afzallik beradi). Davlat xizmatida yoki moliyaviy tashkilotlarda kamida 3 yillik rahbarlik tajribasi. Makroiqtisodiy tahlil va xalqaro moliya standartlarini bilish.",
+            "duties": "Davlat byudjeti loyihasini shakllantirishda daromadlar qismini prognoz qilish, fiskal siyosat bo'yicha takliflar ishlab chiqish, bo'lim xodimlari faoliyatini muvofiqlashtirish.",
+            "work_conditions": "Vazirlik markaziy apparatida xizmat, xorijiy xizmat safarlari va xalqaro tashkilotlar bilan qo'shma loyihalarda ishtirok etish imkoniyati.",
+            "vacant_count": 1,
+            "views_count": 420,
+            "likesCount": 35,
+            "get_candidates_count": 11
+        },
+        {
+            "id": 142202,
+            "position_name": "Boshqarma boshlig'i o'rinbosari",
+            "organization": "O'zbekiston Respublikasi Raqamli texnologiyalar vazirligi",
+            "structure_name": "Sun'iy intellekt va raqamli innovatsiyalarni rivojlantirish departamenti",
+            "region": "Toshkent shahri, Shayxontohur tumani",
+            "position_salary": "9 000 000 - 16 500 000",
+            "position_rate": 1.0,
+            "experience": 3,
+            "test_type_name": "Davlat fuqarolik xizmatchisi (Boshqaruv xodimi)",
+            "test_type_id": 4,
+            "is_dfx": True,
+            "date_start": "2026-09-05T09:00:00",
+            "date_stop": "2026-09-29T18:00:00",
+            "requirements": "Axborot texnologiyalari, axborot tizimlari boshqaruvi yoki loyihalarni boshqarish bo'yicha oliy ma'lumot. IT-loyihalarni boshqarishda kamida 3 yillik muvaffaqiyatli rahbarlik tajribasi.",
+            "duties": "Davlat organlarida sun'iy intellekt texnologiyalarini joriy etish konsepsiyalarini ishlab chiqish, innovatsion loyihalar monitoringi va davlat-xususiy sheriklik loyihalarini boshqarish.",
+            "work_conditions": "Eng zamonaviy texnologik muhit, xalqaro IT forumlarida ishtirok, ustama va bonuslar tizimi.",
+            "vacant_count": 1,
+            "views_count": 510,
+            "likesCount": 42,
+            "get_candidates_count": 14
+        }
+    ]
+
+    # 3. Ijtimoiy himoya va Sog'liqni saqlash sohasidagi vakansiyalar to'plami
+    sample_set_3 = [
+        {
+            "id": 142301,
+            "position_name": "Bosh mutaxassis",
+            "organization": "O'zbekiston Respublikasi Prezidenti huzuridagi Ijtimoiy himoya milliy agentligi",
+            "structure_name": "Inson ijtimoiy xizmatlar markazlari faoliyatini muvofiqlashtirish bo'limi",
+            "region": "Toshkent shahri, Yakkasaroy tumani",
+            "position_salary": "5 500 000 - 8 500 000",
+            "position_rate": 1.0,
+            "experience": 2,
+            "test_type_name": "Davlat fuqarolik xizmatchisi (Mutaxassis)",
+            "test_type_id": 5,
+            "is_dfx": True,
+            "date_start": "2026-09-06T09:00:00",
+            "date_stop": "2026-09-30T18:00:00",
+            "requirements": "Sotsiologiya, psixologiya, ijtimoiy ish yoki huquqshunoslik bo'yicha oliy ma'lumot. Ijtimoiy sohada kamida 2 yillik tajriba. Ehtiyojmand qatlamlar bilan ishlashda yuqori mas'uliyat.",
+            "duties": "Inson markazlari faoliyatini tahlil qilish, ijtimoiy yordam reestrlarini shakllantirish, manzilli yordam ko'rsatilishini nazorat qilish va yangi ijtimoiy dasturlarni ishlab chiqish.",
+            "work_conditions": "To'liq ish kuni, namunaviy mehnat sharoitlari, muntazam professional treninglar.",
+            "vacant_count": 1,
+            "views_count": 275,
+            "likesCount": 19,
+            "get_candidates_count": 6
+        },
+        {
+            "id": 142302,
+            "position_name": "Yetakchi mutaxassis vrach",
+            "organization": "O'zbekiston Respublikasi Sog'liqni saqlash vazirligi Toshkent shahar boshqarmasi",
+            "structure_name": "Tibbiy yordam sifatini nazorat qilish va standartlashtirish bo'limi",
+            "region": "Toshkent shahri, Olmazor tumani",
+            "position_salary": "4 200 000 - 6 800 000",
+            "position_rate": 1.0,
+            "experience": 2,
+            "test_type_name": "Davlat fuqarolik xizmatchisi (Mutaxassis)",
+            "test_type_id": 5,
+            "is_dfx": True,
+            "date_start": "2026-09-07T09:00:00",
+            "date_stop": "2026-09-27T18:00:00",
+            "requirements": "Oliy tibbiy ma'lumot (davolash ishi, pediatriya yoki jamoat salomatligi). Tibbiyot muassasalarida yoki sog'liqni saqlash boshqaruvida kamida 2 yillik amaliy tajriba.",
+            "duties": "Shahar shifoxonalari va poliklinikalarida tibbiy xizmat sifati standartlariga rioya etilishini tekshirish, bemorlar murojaatlarini o'rganish va profilaktika tadbirlarini rejalashtirish.",
+            "work_conditions": "Barqaror davlat xizmati, tibbiyot xodimlariga beriladigan barcha imtiyoz va kafolatlar.",
+            "vacant_count": 1,
+            "views_count": 330,
+            "likesCount": 21,
+            "get_candidates_count": 7
+        }
+    ]
+
+    seeds = [
+        (sample_set_1, "Argos_Vakansiyalar_Toplami_Toshkent_Mutaxassis.docx"),
+        (sample_set_2, "Argos_Vakansiyalar_Toplami_Boshqaruv_Xodimlari.docx"),
+        (sample_set_3, "Argos_Vakansiyalar_Toplami_Ijtimoiy_Soha.docx")
+    ]
+
+    for items, fname in seeds:
+        target_path = os.path.join(EXPORTS_DIR, fname)
+        if force or not os.path.exists(target_path):
+            try:
+                docx_exporter.export_multiple_vacancies(items, filename=fname)
+                created_files.append(fname)
+                print(f"[*] Avto-tiklash: Namunaviy Word hujjati yaratildi -> {fname}")
+            except Exception as e:
+                print(f"[!] Namunaviy hujjat yaratishda xatolik ({fname}): {e}")
+
+    return created_files
+
+# Startup auto-seed kafolati
+try:
+    ensure_default_exports()
+except Exception as _e_init:
+    print(f"[!] Dastlabki Word eksportlarini yaratishda ogohlantirish: {_e_init}")
+
+
 # Faol jarayonlarni boshqarish uchun flaglar
 current_scan_lock = threading.Lock()
 stop_flag = False
@@ -2129,6 +2335,11 @@ def upload_docx_api():
 @app.route("/api/history")
 def get_history():
     """Avval yaratilgan Word hujjatlari tarixi"""
+    try:
+        ensure_default_exports()
+    except Exception as _e_seed:
+        print(f"[!] ensure_default_exports ogohlantirish: {_e_seed}")
+
     files = glob.glob(os.path.join(EXPORTS_DIR, "*.docx"))
     files.sort(key=os.path.getmtime, reverse=True)
 
@@ -2256,6 +2467,24 @@ def delete_history_document(filename):
     Foydalanuvchi talabi bo'yicha hujjatlarni o'chirish taqiqlangan (arxiv saqlanadi).
     """
     return make_error_response("Word tarixi hujjatlarini o'chirish taqiqlangan. Barcha hujjatlar arxivda saqlanadi.", 403)
+
+
+@app.route("/api/history/seed", methods=["GET", "POST"])
+def seed_history_api():
+    """
+    Namunaviy Word to'plamlarini majburiy qayta tiklash API si.
+    """
+    try:
+        created = ensure_default_exports(force=True)
+        return jsonify({
+            "status": "success",
+            "message": "Namunaviy Word to'plamlari muvaffaqiyatli tiklandi!",
+            "count": len(created),
+            "files": created
+        })
+    except Exception as e:
+        print(f"[!] /api/history/seed xatoligi: {e}")
+        return make_error_response("Namunaviy to'plamlarni tiklashda xatolik yuz berdi", 500)
 
 
 

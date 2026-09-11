@@ -11,4 +11,6 @@ ENV/
 exports/*.docx
 exports/*.json
 !exports/.gitkeep
+!exports/Argos_*.docx
+!exports/Argos_*.docx.json
 *.log

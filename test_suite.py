@@ -64,6 +64,7 @@ class ArgosIntegrationTests(unittest.TestCase):
 
     def setUp(self):
         self.client = main_app.app.test_client()
+        main_app.rate_limiter.reset_for_test()
 
     def test_index_page(self):
         res = self.client.get("/")
@@ -108,7 +109,31 @@ class ArgosIntegrationTests(unittest.TestCase):
     def test_api_history(self):
         res = self.client.get("/api/history")
         self.assertEqual(res.status_code, 200)
-        self.assertIsInstance(res.get_json(), list)
+        items = res.get_json()
+        self.assertIsInstance(items, list)
+        self.assertGreater(len(items), 0, "Word tarixi hech qachon bo'sh (0 ta) bo'lmasligi kerak!")
+        first = items[0]
+        self.assertIn("filename", first)
+        self.assertIn("count", first)
+        self.assertIn("size", first)
+        self.assertIn("preview_url", first)
+        self.assertIn("download_url", first)
+
+    def test_api_history_seed_endpoint(self):
+        res = self.client.post("/api/history/seed")
+        self.assertEqual(res.status_code, 200)
+        data = res.get_json()
+        self.assertEqual(data.get("status"), "success")
+        self.assertGreater(data.get("count", 0), 0)
+
+    def test_vacancies_by_doc_sample(self):
+        res = self.client.get("/api/vacancies-by-doc/Argos_Vakansiyalar_Toplami_Toshkent_Mutaxassis.docx")
+        self.assertEqual(res.status_code, 200)
+        cards = res.get_json()
+        self.assertIsInstance(cards, list)
+        self.assertGreater(len(cards), 0)
+        self.assertIn("position_name", cards[0])
+        self.assertIn("organization", cards[0])
 
     def test_api_stop(self):
         res = self.client.post("/api/stop")
@@ -125,6 +150,7 @@ class ArgosSecurityAndEdgeCaseTests(unittest.TestCase):
 
     def setUp(self):
         self.client = main_app.app.test_client()
+        main_app.rate_limiter.reset_for_test()
 
     def test_path_traversal_prevention(self):
         res1 = self.client.get("/api/preview/..%2F..%2Fapp.py")

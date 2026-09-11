@@ -919,6 +919,11 @@
                 ↑ Eski
               </button>
             </div>
+            <button id="btn-seed-history-header" type="button" class="w-8 h-8 rounded-lg text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition cursor-pointer flex items-center justify-center" title="Namunaviy Word to'plamlarini qayta tiklash" aria-label="Namunaviy hujjatlarni tiklash">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+              </svg>
+            </button>
             <button id="btn-refresh-history" type="button" class="w-8 h-8 rounded-lg text-slate-500 hover:text-[#3165cb] dark:hover:text-[#a2ade8] hover:bg-slate-200/60 dark:hover:bg-slate-800 transition cursor-pointer flex items-center justify-center" title="Ro'yxatni yangilash">
               <svg id="history-refresh-icon" class="w-4 h-4 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="23 4 23 10 17 10"></polyline>
@@ -2521,8 +2526,35 @@
     // =========================================================================
     // 7. HUJJATLAR TARIXI VA BOSHQARUV (TO'LIQ AVTO-O'TKAZISH VA INTEGRATSIYA)
     // =========================================================================
+    const HISTORY_CACHE_KEY = "argos_word_history_cache";
     let historySortOrder = "desc"; // "desc" = yangi birinchi, "asc" = eski birinchi
     let cachedHistoryItems = [];
+
+    function getLocalHistoryCache() {
+      try {
+        const raw = localStorage.getItem(HISTORY_CACHE_KEY);
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function setLocalHistoryCache(items) {
+      if (!Array.isArray(items)) return;
+      try {
+        localStorage.setItem(HISTORY_CACHE_KEY, JSON.stringify(items));
+      } catch (e) {}
+    }
+
+    // Dastlabki keshni darhol o'rnatish
+    try {
+      const _bootCache = getLocalHistoryCache();
+      if (_bootCache && _bootCache.length > 0) {
+        cachedHistoryItems = _bootCache;
+      }
+    } catch (_e) {}
 
     // dd.mm.yyyy HH:MM:SS → Date obyektiga aylantirish
     function parseHistoryDate(dateStr) {
@@ -2534,9 +2566,13 @@
     }
 
     function updateHistoryBadges(count, animate = false) {
+      const safeCount = (typeof count === "number" && !isNaN(count)) 
+        ? count 
+        : (cachedHistoryItems ? cachedHistoryItems.length : 0);
+
       [historyBadge, drawerHistoryBadge].forEach(b => {
         if (b) {
-          b.textContent = count;
+          b.textContent = safeCount;
           if (animate) {
             b.classList.add("scale-125", "bg-emerald-500", "text-white");
             setTimeout(() => {
@@ -2550,12 +2586,43 @@
     async function openHistoryDrawer(highlightFilename = null) {
       if (!historyModal) return;
       historyModal.classList.remove("hidden");
+      if (cachedHistoryItems && cachedHistoryItems.length > 0) {
+        renderHistoryItems(cachedHistoryItems, highlightFilename);
+      } else if (historyList) {
+        historyList.innerHTML = `
+          <div class="flex flex-col items-center justify-center py-20 px-4 text-center">
+            <div class="w-9 h-9 border-3 border-[#3165cb] border-t-transparent rounded-full animate-spin mb-3"></div>
+            <p class="text-xs font-semibold text-slate-500 dark:text-[#a9b3d6]">Word tarixi yuklanmoqda...</p>
+          </div>
+        `;
+      }
       await refreshHistoryList(highlightFilename);
     }
 
     function closeHistoryDrawer() {
       if (!historyModal) return;
       historyModal.classList.add("hidden");
+    }
+
+    async function seedSampleDocuments() {
+      if (historyList) {
+        historyList.innerHTML = `
+          <div class="flex flex-col items-center justify-center py-20 px-4 text-center">
+            <div class="w-9 h-9 border-3 border-emerald-500 border-t-transparent rounded-full animate-spin mb-3"></div>
+            <p class="text-xs font-semibold text-slate-700 dark:text-slate-200">Namunaviy Word to'plamlari tiklanmoqda...</p>
+          </div>
+        `;
+      }
+      try {
+        const res = await fetch("/api/history/seed", { method: "POST" });
+        if (res.ok) {
+          showNotification("Hujjatlar tiklandi", "Namunaviy Word to'plamlari muvaffaqiyatli tiklandi!", "success");
+        }
+      } catch (e) {
+        console.error("Seed xatolik:", e);
+      } finally {
+        await refreshHistoryList();
+      }
     }
 
     function renderHistoryItems(items, highlightFilename = null) {
@@ -2599,17 +2666,30 @@
               ${searchTerm ? "Mos hujjatlar topilmadi" : "Hozircha Word hujjati saqlanmagan"}
             </h4>
             <p class="text-xs text-slate-500 dark:text-[#a9b3d6] max-w-xs leading-relaxed">
-              ${searchTerm ? `"${escapeHtml(searchTerm)}" so'rovi bo'yicha arxivda hech qanday Word hujjati topilmadi.` : "Vakansiyalarni skanerlang yoki kompyuterdan mavjud Word (.docx) faylini oching."}
+              ${searchTerm ? `"${escapeHtml(searchTerm)}" so'rovi bo'yicha arxivda hech qanday Word hujjati topilmadi.` : "Vakansiyalarni skanerlang, kompyuterdan mavjud Word faylini oching yoki namunaviy to'plamlarni yuklang."}
             </p>
             ${!searchTerm ? `
-              <button type="button" onclick="document.getElementById('local-file-input').click()"
-                class="mt-4 px-4 py-2 text-xs font-bold rounded-xl bg-[#3165cb] hover:bg-blue-700 active:bg-blue-800 text-white shadow-xs transition flex items-center gap-1.5 cursor-pointer">
-                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
-                <span>Word (.docx) fayl ochish</span>
-              </button>
+              <div class="mt-4 flex flex-col sm:flex-row items-center gap-2">
+                <button type="button" id="btn-seed-empty-state"
+                  class="w-full sm:w-auto px-3.5 py-2 text-xs font-bold rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer">
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+                  <span>Namunaviy to'plamlarni yuklash</span>
+                </button>
+                <button type="button" onclick="document.getElementById('local-file-input').click()"
+                  class="w-full sm:w-auto px-3.5 py-2 text-xs font-bold rounded-xl bg-[#3165cb] hover:bg-blue-700 active:bg-blue-800 text-white shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer">
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                  <span>Word (.docx) ochish</span>
+                </button>
+              </div>
             ` : ''}
           </div>
         `;
+        const btnSeedEmpty = document.getElementById("btn-seed-empty-state");
+        if (btnSeedEmpty) {
+          btnSeedEmpty.addEventListener("click", () => {
+            seedSampleDocuments();
+          });
+        }
         return;
       }
 
@@ -2723,14 +2803,46 @@
     async function refreshHistoryList(highlightFilename = null) {
       try {
         const res = await fetch("/api/history");
+        if (!res.ok) {
+          console.warn("Tarixni yuklashda HTTP status:", res.status);
+          if (cachedHistoryItems && cachedHistoryItems.length > 0) {
+            updateHistoryBadges(cachedHistoryItems.length, !!highlightFilename);
+            renderHistoryItems(cachedHistoryItems, highlightFilename);
+            return cachedHistoryItems;
+          }
+          return [];
+        }
         let items = await res.json();
+        if (!Array.isArray(items)) {
+          console.warn("Tarix massiv emas:", items);
+          if (cachedHistoryItems && cachedHistoryItems.length > 0) {
+            updateHistoryBadges(cachedHistoryItems.length, !!highlightFilename);
+            renderHistoryItems(cachedHistoryItems, highlightFilename);
+            return cachedHistoryItems;
+          }
+          return [];
+        }
+
+        // Agar server kutilmaganda bo'sh qaytarsa lekin keshda mavjud bo'lsa
+        if (items.length === 0 && cachedHistoryItems && cachedHistoryItems.length > 0) {
+          updateHistoryBadges(cachedHistoryItems.length, !!highlightFilename);
+          renderHistoryItems(cachedHistoryItems, highlightFilename);
+          return cachedHistoryItems;
+        }
+
         cachedHistoryItems = items;
+        setLocalHistoryCache(items);
 
         updateHistoryBadges(items.length, !!highlightFilename);
         renderHistoryItems(items, highlightFilename);
         return items;
       } catch (err) {
-        console.error("Tarixni olishda xatolik:", err);
+        console.error("Tarixni olishda tarmoq xatoligi:", err);
+        if (cachedHistoryItems && cachedHistoryItems.length > 0) {
+          updateHistoryBadges(cachedHistoryItems.length, !!highlightFilename);
+          renderHistoryItems(cachedHistoryItems, highlightFilename);
+          return cachedHistoryItems;
+        }
         return [];
       }
     }
@@ -2756,6 +2868,15 @@
     if (btnCloseHistory) {
       btnCloseHistory.addEventListener("click", () => {
         closeHistoryDrawer();
+      });
+    }
+
+    const btnSeedHistoryHeader = document.getElementById("btn-seed-history-header");
+    if (btnSeedHistoryHeader) {
+      btnSeedHistoryHeader.addEventListener("click", async () => {
+        btnSeedHistoryHeader.classList.add("animate-spin");
+        await seedSampleDocuments();
+        setTimeout(() => btnSeedHistoryHeader.classList.remove("animate-spin"), 600);
       });
     }
 
@@ -2865,6 +2986,13 @@
     // 8. BOSHLANG'ICH YUKLANISH
     // =========================================================================
     document.addEventListener("DOMContentLoaded", () => {
+      // 1. Keshdagi Word tarixini birinchi millisekunddayoq ko'rsatish (0 miltillashini yo'qotish)
+      const bootHistory = getLocalHistoryCache();
+      if (bootHistory && bootHistory.length > 0) {
+        cachedHistoryItems = bootHistory;
+        updateHistoryBadges(bootHistory.length, false);
+      }
+
       initTheme();
       loadRegions();
       loadOrganizations();
