@@ -67,6 +67,10 @@ check('emblem.svg loads', status == 200, f'status={status}')
 
 # ---- 2. Core GET APIs ----
 print('\n[2] GET APIS')
+status, body, _ = get('/api/health')
+data = json.loads(body)
+check('health check works', status == 200 and data.get('healthy') is True, f'status={status}')
+
 status, body, _ = get('/api/regions')
 data = json.loads(body)
 check('regions returns list', isinstance(data, list), f'type={type(data)}')

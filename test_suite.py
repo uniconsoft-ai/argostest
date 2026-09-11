@@ -80,6 +80,29 @@ class ArgosIntegrationTests(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertIn("svg", res.mimetype)
 
+    def test_api_health(self):
+        res = self.client.get("/api/health")
+        self.assertEqual(res.status_code, 200)
+        data = res.get_json()
+        self.assertEqual(data.get("status"), "ok")
+        self.assertTrue(data.get("healthy"))
+        self.assertIn("uptime_seconds", data)
+
+    def test_api_ping(self):
+        res = self.client.get("/api/ping")
+        self.assertEqual(res.status_code, 200)
+        data = res.get_json()
+        self.assertEqual(data.get("status"), "ok")
+        self.assertTrue(data.get("healthy"))
+
+    def test_cors_and_anycast_headers(self):
+        res = self.client.get("/api/health", headers={"Origin": "https://argostest.web.app"})
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.headers.get("Access-Control-Allow-Origin"), "https://argostest.web.app")
+        self.assertEqual(res.headers.get("Access-Control-Allow-Credentials"), "true")
+        self.assertEqual(res.headers.get("Cross-Origin-Resource-Policy"), "cross-origin")
+        self.assertEqual(res.headers.get("Cross-Origin-Opener-Policy"), "same-origin-allow-popups")
+
     def test_api_regions(self):
         res = self.client.get("/api/regions")
         self.assertEqual(res.status_code, 200)

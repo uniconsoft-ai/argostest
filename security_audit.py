@@ -14,8 +14,8 @@ class ArgosSecurityHardeningAudit(unittest.TestCase):
         self.assertIn('max-age=31536000', h.get('Strict-Transport-Security', ''))
         self.assertEqual(h.get('Referrer-Policy'), 'strict-origin-when-cross-origin')
         self.assertIn('camera=()', h.get('Permissions-Policy', ''))
-        self.assertEqual(h.get('Cross-Origin-Opener-Policy'), 'same-origin')
-        self.assertEqual(h.get('Cross-Origin-Resource-Policy'), 'same-site')
+        self.assertEqual(h.get('Cross-Origin-Opener-Policy'), 'same-origin-allow-popups')
+        self.assertEqual(h.get('Cross-Origin-Resource-Policy'), 'cross-origin')
         self.assertIn('default-src', h.get('Content-Security-Policy', ''))
         self.assertIn('no-cache', h.get('Cache-Control', ''))
         self.assertIn('ARGOS-SECURE-GATEWAY', h.get('Server', ''))
@@ -42,7 +42,7 @@ class ArgosSecurityHardeningAudit(unittest.TestCase):
 
     def test_rate_limiting_tier1_heavy_endpoints(self):
         main_app.rate_limiter.reset_for_test()
-        for _ in range(20):
+        for _ in range(40):
             res = self.client.post('/api/upload-docx', data={})
             self.assertNotEqual(res.status_code, 429)
 

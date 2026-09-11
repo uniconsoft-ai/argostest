@@ -1355,6 +1355,16 @@ TRUSTED_ORIGINS = {
     "http://127.0.0.1:3000",
 }
 
+def is_trusted_origin(origin: Optional[str]) -> bool:
+    if not origin:
+        return False
+    if origin in TRUSTED_ORIGINS:
+        return True
+    lower = origin.lower()
+    if lower.endswith(".web.app") or lower.endswith(".firebaseapp.com") or lower.endswith(".onrender.com"):
+        return True
+    return False
+
 def get_client_ip() -> str:
     """Mijozning haqiqiy IP manzilini xavfsiz aniqlash (Reverse Proxy qo'llab-quvvatlaydi)"""
     if request.headers.get("CF-Connecting-IP"):
@@ -1401,6 +1411,7 @@ def make_error_response(message: str, status_code: int = 400, extra_headers: Opt
 # --------------------------------------------------------------------------------------
 app = Flask(__name__, template_folder="templates", static_folder="static")
 app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024  # Maksimal so'rov hajmi: 2 MB
+SERVER_START_TIME = time.time()
 api_client = ArgosApiClient()
 docx_exporter = DocxExporter(exports_dir=EXPORTS_DIR)
 
@@ -1625,14 +1636,19 @@ def handle_security_filtering():
     method = request.method
     ua = request.headers.get("User-Agent", "")
 
+    # 0. Health va Ping endpointlari har qanday cheklovlardan ozod
+    if path in ("/api/health", "/api/ping"):
+        return None
+
     # 1. CORS Preflight so'rovlarini boshqarish
     if method == "OPTIONS":
         origin = request.headers.get("Origin", "")
         resp = Response(status=204)
-        if origin in TRUSTED_ORIGINS:
+        if is_trusted_origin(origin):
             resp.headers["Access-Control-Allow-Origin"] = origin
             resp.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS, DELETE"
             resp.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With"
+            resp.headers["Access-Control-Allow-Credentials"] = "true"
             resp.headers["Access-Control-Max-Age"] = "86400"
         return resp
 
@@ -1641,21 +1657,21 @@ def handle_security_filtering():
         if ua and AI_BOT_REGEX.search(ua):
             return make_error_response("Avtomatlashtirilgan AI botlar va scraperlar uchun API ga kirish taqiqlangan.", 403)
 
-    # 3. Ko'p pog'onali Rate Limiting (IP bo'yicha)
-    if not app.config.get("TESTING_NO_RATE_LIMIT"):
-        if path in ("/api/scan", "/api/upload-docx") or path.startswith("/api/export-single"):
-            # Og'ir amallar: minutiga 20 ta
-            limited, retry_after = rate_limiter.is_limited(client_ip, max_requests=20, window_seconds=60)
+    # 3. Ko'p pog'onali Rate Limiting (IP bo'yicha, CGNAT mobil tarmoqlar hisobga olingan)
+    if not app.config.get("TESTING_NO_RATE_LIMIT") and path not in ("/api/health", "/api/ping"):
+        if path in ("/api/scan", "/api/upload-docx", "/api/history/seed") or path.startswith("/api/export-single"):
+            # Og'ir amallar: minutiga 40 ta (avval 20 edi)
+            limited, retry_after = rate_limiter.is_limited(client_ip, max_requests=40, window_seconds=60)
             if limited:
                 return make_error_response("Juda ko'p so'rovlar yuborildi. Iltimos, birozdan so'ng qayta urinib ko'ring.", 429, {"Retry-After": str(retry_after)})
         elif path == "/api/vacancies":
-            # Vakansiyalar qidirish/filtrlash: minutiga 60 ta
-            limited, retry_after = rate_limiter.is_limited(client_ip, max_requests=60, window_seconds=60)
+            # Vakansiyalar qidirish/filtrlash: minutiga 150 ta (avval 60 edi)
+            limited, retry_after = rate_limiter.is_limited(client_ip, max_requests=150, window_seconds=60)
             if limited:
                 return make_error_response("Vakansiyalar qidiruvi limiti oshdi. Iltimos, biroz kuting.", 429, {"Retry-After": str(retry_after)})
         elif path.startswith("/api/"):
-            # Boshqa API endpointlar: minutiga 120 ta
-            limited, retry_after = rate_limiter.is_limited(client_ip, max_requests=120, window_seconds=60)
+            # Boshqa API endpointlar (metadata, tarix, viloyatlar): minutiga 300 ta (avval 120 edi)
+            limited, retry_after = rate_limiter.is_limited(client_ip, max_requests=300, window_seconds=60)
             if limited:
                 return make_error_response("So'rovlar limiti oshdi.", 429, {"Retry-After": str(retry_after)})
 
@@ -1685,9 +1701,9 @@ def inject_security_headers(response):
     # 6. Permissions-Policy (Zararsiz brauzer imkoniyatlarini o'chirish)
     response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()"
 
-    # 7. Cross-Origin himoyalari
-    response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
-    response.headers["Cross-Origin-Resource-Policy"] = "same-site"
+    # 7. Cross-Origin himoyalari (Mobil Webview va Anycast CDN uchun moslashgan)
+    response.headers["Cross-Origin-Opener-Policy"] = "same-origin-allow-popups"
+    response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
 
     # 8. Content-Security-Policy (CSP)
     csp_policy = (
@@ -1696,7 +1712,7 @@ def inject_security_headers(response):
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; "
         "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; "
         "img-src 'self' data: https: blob:; "
-        "connect-src 'self' https://vacancy.argos.uz https://hrm.argos.uz https://argostest.onrender.com https://argostest.web.app; "
+        "connect-src 'self' https://vacancy.argos.uz https://hrm.argos.uz https://argostest.onrender.com https://argostest.web.app https://argostest.firebaseapp.com; "
         "frame-ancestors 'self'; "
         "form-action 'self'; "
         "base-uri 'self'; "
@@ -1704,9 +1720,9 @@ def inject_security_headers(response):
     )
     response.headers["Content-Security-Policy"] = csp_policy
 
-    # 9. CORS boshqaruvi
+    # 9. Global CORS boshqaruvi (Firebase Hosting Anycast CDN va Render uchun)
     origin = request.headers.get("Origin")
-    if origin and origin in TRUSTED_ORIGINS:
+    if origin and is_trusted_origin(origin):
         response.headers["Access-Control-Allow-Origin"] = origin
         response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS, DELETE"
         response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With"
@@ -1716,6 +1732,7 @@ def inject_security_headers(response):
     response.headers["Server"] = "ARGOS-SECURE-GATEWAY/2.4"
 
     return response
+
 
 
 # --------------------------------------------------------------------------------------
@@ -1775,6 +1792,22 @@ def robots_txt():
         "Disallow: /\n"
     )
     return Response(rules, mimetype="text/plain")
+
+
+@app.route("/api/health")
+@app.route("/api/ping")
+def health_check():
+    """
+    Tezkor, engil global salomatlik va uyg'onish tekshiruvi (Cold-start detector).
+    """
+    uptime = int(time.time() - SERVER_START_TIME)
+    return jsonify({
+        "status": "ok",
+        "healthy": True,
+        "server": "ARGOS-SECURE-GATEWAY/2.4",
+        "uptime_seconds": uptime,
+        "timestamp": datetime.now().isoformat()
+    })
 
 
 @app.route("/")
